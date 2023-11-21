@@ -1,0 +1,8 @@
+package com.solvd.OnlineShopping.exception;
+
+public class InvalidUsernameException extends RuntimeException {
+    public InvalidUsernameException(String message) {
+        super(message);
+    }
+}
+
