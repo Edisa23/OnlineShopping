@@ -1,7 +1,5 @@
 package com.solvd.OnlineShopping.shippment;
 
-
-import com.solvd.OnlineShopping.exception.InvalidShippingOptionException;
 import com.solvd.OnlineShopping.payment.CreditCard;
 
 import java.util.logging.Logger;
@@ -35,10 +33,10 @@ public class StandardShipping extends Shipping {
 
     public StandardShipping(String optionName, double baseFee, String deliveryTime) {
         super(optionName, baseFee);
+        validateDeliveryTime(deliveryTime);
         this.deliveryTime = deliveryTime;
 
     }
-
 
     public void setDeliveryTime(String deliveryTime) {
         validateDeliveryTime(deliveryTime);
@@ -56,11 +54,4 @@ public class StandardShipping extends Shipping {
         logger.info("Estimated Delivery Time: " + deliveryTime);
     }
 
-
-    private void validateDeliveryTime(String deliveryTime) throws InvalidShippingOptionException {
-
-        if (deliveryTime == null || deliveryTime.trim().isEmpty()) {
-            throw new InvalidShippingOptionException("Invalid delivery time.");
-        }
-    }
 }

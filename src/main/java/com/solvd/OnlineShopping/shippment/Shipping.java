@@ -1,7 +1,10 @@
 package com.solvd.OnlineShopping.shippment;
+
+import com.solvd.OnlineShopping.exception.InvalidShippingOptionException;
 import com.solvd.OnlineShopping.payment.CreditCard;
 
 import java.util.logging.Logger;
+
 public abstract class Shipping implements ShippingOption {
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
     private static final double WEIGHT_COST_FACTOR = 0.1;
@@ -29,5 +32,9 @@ public abstract class Shipping implements ShippingOption {
         logger.info("Base Fee: $" + baseFee);
     }
 
-
+    protected void validateDeliveryTime(String deliveryTime) throws InvalidShippingOptionException {
+        if (deliveryTime == null || deliveryTime.trim().isEmpty()) {
+            throw new InvalidShippingOptionException("Invalid delivery time.");
+        }
+    }
 }

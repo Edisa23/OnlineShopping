@@ -1,12 +1,9 @@
 package com.solvd.OnlineShopping.shopping;
 
-
 public class Product {
 
     private int productId;
     private String productName;
-
-
     private double price;
 
     public Product(int productId, String productName, double price) {

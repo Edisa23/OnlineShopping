@@ -4,7 +4,6 @@ public abstract class Customer extends InfoFinal {
     protected final String username;
     protected final String password;
 
-
     public String getUsername() {
         return username;
     }

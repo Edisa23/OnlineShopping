@@ -1,37 +1,36 @@
 package com.solvd.OnlineShopping.shopping;
 
 import com.solvd.OnlineShopping.exception.InvalidProductException;
-import com.solvd.OnlineShopping.payment.CreditCard;
+import com.solvd.OnlineShopping.payment.Payment;
+import com.solvd.OnlineShopping.shippment.ShippingOption;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class Cart<T extends Product> {
-    private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
+    private static final Logger logger = Logger.getLogger(Cart.class.getName());
     private List<CartItem<T>> cartItems;
 
     public Cart() {
-
         cartItems = new ArrayList<>();
     }
 
     public void addProduct(T product, int quantity) {
         try {
             validateProduct(product);
-            cartItems.add((CartItem<T>) new CartItem<Product>(product, quantity));
+            cartItems.add(new CartItem<>(product, quantity));
             logger.info(quantity + " " + product.getProductName() + "(s) added to the cart.");
         } catch (InvalidProductException e) {
             logger.warning("Product not added to the cart. " + e.getMessage());
         }
     }
 
-    private void validateProduct(Product product) throws InvalidProductException {
+    private void validateProduct(T product) throws InvalidProductException {
         if (product == null || product.getProductId() <= 0 || product.getProductName().trim().isEmpty() || product.getPrice() < 0) {
             throw new InvalidProductException("Invalid product details.");
         }
     }
-
 
     public void removeProduct(int productId) {
         cartItems.removeIf(item -> item.getProduct().getProductId() == productId);
@@ -39,7 +38,7 @@ public class Cart<T extends Product> {
     }
 
     public List<CartItem<T>> getCartItems() {
-        return (List<CartItem<T>>) cartItems;
+        return cartItems;
     }
 
     public double calculateTotal() {
@@ -48,5 +47,11 @@ public class Cart<T extends Product> {
             total += item.getProduct().getPrice() * item.getQuantity();
         }
         return total;
+    }
+
+    public void setShippingOption(ShippingOption shippingOption) {
+    }
+
+    public void setPayment(Payment payment) {
     }
 }

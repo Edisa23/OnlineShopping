@@ -1,9 +1,9 @@
 package com.solvd.OnlineShopping.payment;
+
 import com.solvd.OnlineShopping.exception.InvalidCVVException;
+import java.util.Scanner;
 import java.util.logging.Logger;
 
-
-import java.util.Scanner;
 
 public class CreditCard implements Payment {
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
@@ -34,13 +34,11 @@ public class CreditCard implements Payment {
 
     @Override
     public boolean makePayment() {
-        Scanner scanner = new Scanner(System.in);
-        logger.info("Processing credit card payment...");
-        logger.info("Enter CVV:");
-        int cvv = scanner.nextInt();
+        try (Scanner scanner = new Scanner(System.in)) {
+            logger.info("Processing credit card payment");
+            logger.info("Enter CVV:");
+            int cvv = scanner.nextInt();
 
-
-        try {
             validateCVV(cvv);
             logger.info("Payment successful! Thank you for your purchase.");
             return true;
