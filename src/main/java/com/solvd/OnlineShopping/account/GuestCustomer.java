@@ -1,14 +1,18 @@
 package com.solvd.OnlineShopping.account;
 
-public class GuestCustomer extends Customer {
-
+public class GuestCustomer extends Account {
     public GuestCustomer(String username, String password) {
-        super(DEFAULT_USERNAME, DEFAULT_PASSWORD);
-
+        super(username, password);
     }
 
     @Override
     public boolean authenticate(String password) {
-        return this.getPassword().equals(password);
+        return true;
+    }
+
+
+    @Override
+    public AccountType getAccountType() {
+        return AccountType.GUEST;
     }
 }

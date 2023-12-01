@@ -1,18 +1,12 @@
 package com.solvd.OnlineShopping.account;
 
-public abstract class Customer extends InfoFinal {
-    protected final String username;
-    protected final String password;
+import static com.solvd.OnlineShopping.account.InfoFinal.*;
 
-    public String getUsername() {
-        return username;
-    }
+public class NewCustomer extends Account {
 
-    public String getPassword() {
-        return password;
-    }
+    public NewCustomer(String username, String password) {
+        super(username,password);
 
-    public Customer(String username, String password) {
         this.username = (username.length() <= MAX_USERNAME_LENGTH) ? username : DEFAULT_USERNAME;
         this.password = (password.length() >= MIN_PASSWORD_LENGTH && password.length() <= MAX_PASSWORD_LENGTH) ?
                 password : DEFAULT_PASSWORD;
@@ -20,9 +14,10 @@ public abstract class Customer extends InfoFinal {
 
     @Override
     public boolean authenticate(String password) {
-
-
         return this.password.equals(password);
 
     }
-}
+    @Override
+    public AccountType getAccountType() {
+        return AccountType.NEW;
+}}

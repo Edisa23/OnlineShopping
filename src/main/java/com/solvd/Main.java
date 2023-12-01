@@ -1,194 +1,167 @@
 package com.solvd;
 
-import com.solvd.OnlineShopping.account.Customer;
-import com.solvd.OnlineShopping.account.CustomerDatabase;
-import com.solvd.OnlineShopping.account.RegisteredCustomer;
+import com.solvd.OnlineShopping.account.*;
 import com.solvd.OnlineShopping.payment.Bill;
 import com.solvd.OnlineShopping.payment.CreditCard;
 import com.solvd.OnlineShopping.payment.PayPal;
 import com.solvd.OnlineShopping.payment.Payment;
-import com.solvd.OnlineShopping.shippment.ExpressShipping;
 import com.solvd.OnlineShopping.shippment.ShippingOption;
 import com.solvd.OnlineShopping.shippment.StandardShipping;
-import com.solvd.OnlineShopping.shopping.Cart;
-import com.solvd.OnlineShopping.shopping.CartItem;
-import com.solvd.OnlineShopping.shopping.Product;
+import com.solvd.OnlineShopping.shopping.*;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Scanner;
 
 
 public class Main {
-    private static final Logger logger = Logger.getLogger(Main.class.getName());
-    private static CustomerDatabase customerDatabase = new CustomerDatabase();
-    private static Scanner scanner = new Scanner(System.in);
-
     public static void main(String[] args) {
 
+        Cart<Product> shoppingCart = new Cart<>();
+        Cart<Product> cart = new Cart<>(new Discount<>(product -> product.getPrice() * 0.5));
 
-        logger.info("=== Welcome to Solvd Shop ===");
-
-
-        logger.info("=== Sign Up ===");
-        logger.info("Enter username: ");
-        String signUpUsername = scanner.nextLine();
-        logger.info("Enter password: ");
-        String signUpPassword = scanner.nextLine();
-
-        Customer newCustomer = new RegisteredCustomer(signUpUsername, signUpPassword);
-        customerDatabase.registerCustomer(newCustomer);
-        logger.info("Sign up successful!");
-
-
-        logger.info("\n=== Sign In ===");
-        logger.info("Enter username: ");
-        String signInUsername = scanner.nextLine();
-        logger.info("Enter password: ");
-        String signInPassword = scanner.nextLine();
-
-        Customer authenticatedCustomer = customerDatabase.findCustomer(signInUsername);
-        if (authenticatedCustomer != null && authenticatedCustomer.authenticate(signInPassword)) {
-            logger.info("Sign in successful! Welcome, " + authenticatedCustomer.getUsername() + "!");
-        } else {
-            logger.warning("Invalid username or password. Sign in failed.");
-            System.exit(0);
+        ProductDatabase productDatabase = new ProductDatabase();
+        try {
+            productDatabase.loadProductsFromFile("src/main/resources/products.txt");
+        } catch (FileNotFoundException e) {
+            System.err.println("Error loading products: " + e.getMessage());
         }
 
 
-        Product product1 = new Product(1, "Product A", 99.99);
-        Product product2 = new Product(2, "Product B", 37.55);
-        Product product3 = new Product(3, "Product C", 15.25);
+        CustomerDatabase customerDatabase = new CustomerDatabase();
 
-        Cart<Product> cart = new Cart<>();
+        ShippingOption shippingOption = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
 
+        Payment payment = new CreditCard();
+
+        Scanner scanner = new Scanner(System.in);
+
+        Account currentAccount = null;
 
         while (true) {
-            logger.info("\nMenu:");
-            logger.info("1. Show Products");
-            logger.info("2. Add to Cart");
-            logger.info("3. Remove from Cart");
-            logger.info("4. View Cart");
-            logger.info("5. Order");
-            logger.info("6. Exit");
+            System.out.println("\nChoose an option:");
+            System.out.println("1. Sign Up");
+            System.out.println("2. Sign In as a Registered Customer");
+            System.out.println("3. Continue as a Guest");
+            System.out.println("4. Exit");
 
-            logger.info("Enter your choice: ");
+            int authChoice = scanner.nextInt();
 
-            boolean exit = false;
-            try {
-                while (!exit) {
+            switch (authChoice) {
+                case 1:
+                    System.out.print("Enter new username: ");
+                    String newUsername = scanner.next();
+                    System.out.print("Enter new password: ");
+                    String newPassword = scanner.next();
 
+                    currentAccount = customerDatabase.createAccount(newUsername, newPassword, AccountType.NEW);
+                    System.out.println("Account created successfully. Welcome, " + newUsername + "!");
+                    break;
+                case 2:
+                    System.out.print("Enter username: ");
+                    String username = scanner.next();
+                    System.out.print("Enter password: ");
+                    String password = scanner.next();
 
-                    logger.info("6. Exit");
+                    currentAccount = customerDatabase.authenticateUser(username, password);
 
-                    logger.info("Enter your choice: ");
+                    if (currentAccount == null) {
+                        System.out.println("Invalid username or password. Please try again.");
+                    } else {
+                        System.out.println("Welcome, " + username + "!");
+                    }
+                    break;
+                case 3:
+                    currentAccount = new GuestCustomer(InfoFinal.DEFAULT_USERNAME, InfoFinal.DEFAULT_PASSWORD);
+                    System.out.println("Continuing as a guest.");
+                    break;
+                case 4:
+                    System.out.println("Exiting the program.");
+                    scanner.close();
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please enter a valid option.");
+                    break;
+            }
+
+            if (currentAccount != null) {
+
+                while (true) {
+                    System.out.println("\nChoose an option:");
+                    System.out.println("1. Add product to cart");
+                    System.out.println("2. Remove product from cart");
+                    System.out.println("3. Display cart contents");
+                    System.out.println("4. Set shipping option");
+                    System.out.println("5. Make payment");
+                    System.out.println("6. Logout");
+
                     int choice = scanner.nextInt();
+
                     switch (choice) {
                         case 1:
-                            logger.info("Available Products:");
-                            logger.info("ID\tName\t\tPrice");
-                            logger.info(product1.toString());
-                            logger.info(product2.toString());
-                            logger.info(product3.toString());
+                            System.out.print("Enter product ID: ");
+                            int productId = scanner.nextInt();
+                            System.out.print("Enter quantity: ");
+                            int quantity = scanner.nextInt();
+
+
+                            List<Product> products = productDatabase.getProductsForDepartment(ProductDatabase.Department.DEPARTMENT1);
+                            Product selectedProduct = products.stream()
+                                    .filter(product -> product.getProductId() == productId)
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (selectedProduct != null) {
+                                shoppingCart.addProduct(selectedProduct, quantity);
+                                System.out.println(quantity + " " + selectedProduct.getProductName() + "(s) added to the cart.");
+                            } else {
+                                System.out.println("Product not found.");
+                            }
                             break;
                         case 2:
-                            logger.info("Enter product ID to add to cart: ");
-                            int productId = scanner.nextInt();
-                            logger.info("Enter quantity: ");
-                            int quantity = scanner.nextInt();
-                            if (productId == product1.getProductId()) {
-                                cart.addProduct(product1, quantity);
-                            } else if (productId == product2.getProductId()) {
-                                cart.addProduct(product2, quantity);
-                            } else if (productId == product3.getProductId()) {
-                                cart.addProduct(product3, quantity);
-                            } else {
-                                logger.warning("Product not found.");
-                            }
+                            System.out.print("Enter product ID to remove: ");
+                            int removeProductId = scanner.nextInt();
+                            shoppingCart.removeProduct(removeProductId);
+                            System.out.println("Product removed from the cart.");
                             break;
                         case 3:
-                            logger.info("Enter product ID to remove from cart: ");
-                            int removeId = scanner.nextInt();
-                            cart.removeProduct(removeId);
+                            System.out.println("Cart contents:");
+                            for (CartItem<Product> item : shoppingCart.getCartItems()) {
+                                System.out.println(item.getProduct().getProductName() + " - Quantity: " + item.getQuantity());
+                            }
+                            System.out.println("Total: $" + shoppingCart.calculateTotal());
                             break;
                         case 4:
-                            logger.info("Cart Items:");
-                            logger.info("ID\tName\t\tPrice\tQuantity");
-                            for (CartItem<Product> item : cart.getCartItems()) {
-                                logger.info(item.getProduct().getProductId() + "\t" +
-                                        item.getProduct().getProductName() + "\t$" +
-                                        item.getProduct().getPrice() + "\t" + item.getQuantity());
-                            }
-                            logger.info("Total: $" + cart.calculateTotal());
+                            System.out.println("Available shipping options:");
+                            shippingOption.displayOptionDetails();
+                            shoppingCart.setShippingOption(shippingOption);
+                            System.out.println("Shipping option set: " + shippingOption.getClass().getSimpleName());
                             break;
                         case 5:
-                            orderProcess(cart);
+                            System.out.println("Available payment options:");
+                            payment.registerInformation();
+                            boolean paymentSuccess = payment.makePayment();
+                            if (paymentSuccess) {
+                                System.out.println("Payment successful!");
+                                shoppingCart.setPayment(payment);
+                                shoppingCart.calculateTotal();
+
+                                Bill bill = new PayPal();
+                                bill.generateBill();
+                            } else {
+                                System.out.println("Payment failed. Please try again.");
+                            }
                             break;
-
-
                         case 6:
-                            exit = true;
-
+                            currentAccount = null;
+                            System.out.println("Logged out successfully.");
                             break;
                         default:
-                            logger.warning("Invalid choice. Try again.");
-
+                            System.out.println("Invalid choice. Please enter a valid option.");
+                            break;
                     }
                 }
-            } finally {
-                logger.info("Thank you for using Solvd Shop!");
-                scanner.close();
             }
         }
-    }
-
-    private static void orderProcess(Cart<Product> cart) {
-        logger.info("Order Placed! Please choose shipping:");
-        logger.info("1. Standard Shipping");
-        logger.info("2. Express Shipping");
-        int shippingChoice = scanner.nextInt();
-        ShippingOption selectedShippingOption;
-
-        if (shippingChoice == 1) {
-            selectedShippingOption = new StandardShipping("Standard", 5.0, "Next Day");
-        } else if (shippingChoice == 2) {
-            selectedShippingOption = new ExpressShipping("Express", 10.0, "After 2-3 Days");
-        } else {
-            logger.log(Level.WARNING, "Invalid choice. Defaulting to Standard Shipping.");
-            selectedShippingOption = new StandardShipping("Standard", 5.0, "Fast");
-        }
-
-        logger.info("Please choose payment method:");
-        logger.info("1. Credit Card");
-        logger.info("2. PayPal");
-        int paymentChoice = scanner.nextInt();
-        Payment paymentMethod;
-
-        if (paymentChoice == 1) {
-            paymentMethod = new CreditCard();
-            paymentMethod.registerInformation();
-        } else if (paymentChoice == 2) {
-            paymentMethod = new PayPal();
-            paymentMethod.registerInformation();
-        } else {
-            logger.warning("Invalid choice.");
-            return;
-        }
-
-        boolean paymentSuccessful = paymentMethod.makePayment();
-        if (paymentSuccessful) {
-            double total = cart.calculateTotal();
-            logger.info("Payment successfully completed!");
-            generateBill(selectedShippingOption, total);
-        } else {
-            logger.warning("Payment failed. Please try again.");
-        }
-    }
-
-    private static void generateBill(ShippingOption shippingOption, double total) {
-        Bill bill = new PayPal();
-        bill.generateBill();
-        logger.info("Shipping Fee: $" + shippingOption.calculateShippingFee());
-        logger.info("Total Bill: $" + bill.calculateTotal(total + shippingOption.calculateShippingFee()));
-    }
-}
+    }}

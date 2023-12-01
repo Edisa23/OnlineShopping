@@ -11,9 +11,17 @@ import java.util.logging.Logger;
 public class Cart<T extends Product> {
     private static final Logger logger = Logger.getLogger(Cart.class.getName());
     private List<CartItem<T>> cartItems;
-
+    private ShippingOption shippingOption;
+    private Payment payment;
     public Cart() {
         cartItems = new ArrayList<>();
+    }
+
+    private Discount<T> discount;
+
+    public Cart(Discount<T> discount) {
+        cartItems = new ArrayList<>();
+        this.discount = discount;
     }
 
     public void addProduct(T product, int quantity) {
@@ -25,18 +33,15 @@ public class Cart<T extends Product> {
             logger.warning("Product not added to the cart. " + e.getMessage());
         }
     }
-
     private void validateProduct(T product) throws InvalidProductException {
         if (product == null || product.getProductId() <= 0 || product.getProductName().trim().isEmpty() || product.getPrice() < 0) {
             throw new InvalidProductException("Invalid product details.");
         }
     }
-
     public void removeProduct(int productId) {
         cartItems.removeIf(item -> item.getProduct().getProductId() == productId);
         logger.info("Product removed from the cart.");
     }
-
     public List<CartItem<T>> getCartItems() {
         return cartItems;
     }
@@ -50,8 +55,12 @@ public class Cart<T extends Product> {
     }
 
     public void setShippingOption(ShippingOption shippingOption) {
+        this.shippingOption = shippingOption;
+        logger.info("Shipping option set to: " + shippingOption.getClass().getSimpleName());
     }
 
     public void setPayment(Payment payment) {
+        this.payment = payment;
+        logger.info("Payment method set to: " + payment.getClass().getSimpleName());
     }
 }

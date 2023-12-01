@@ -1,0 +1,19 @@
+ELECTRONICS
+1,Laptop,999.99
+2,Phone,999.99
+
+BOOKS
+11,Java Programming Book,49.99
+12, Novel,13.00
+
+SPORTS
+21,Basketball,27.99
+22,Football ball,17.99
+
+CLOTHING
+6,T-shirt,18.99
+7,Jeans,67.99
+
+BEAUTY
+16,Shampoo,17.99
+17,Perfume,79.99
