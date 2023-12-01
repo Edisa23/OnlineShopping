@@ -36,6 +36,7 @@ public class ProductDatabase {
         this.departmentProducts = new HashMap<>();
     }
 
+
     public void loadProductsFromFile(String filePath) throws FileNotFoundException {
         try (Scanner scanner = new Scanner(new File(filePath))) {
             List<Product> currentProducts = new ArrayList<>();

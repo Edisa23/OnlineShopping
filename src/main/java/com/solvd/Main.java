@@ -154,7 +154,7 @@ public class Main {
                             }
                             break;
                         case 6:
-                            currentAccount = null;
+
                             System.out.println("Logged out successfully.");
                             break;
                         default:
