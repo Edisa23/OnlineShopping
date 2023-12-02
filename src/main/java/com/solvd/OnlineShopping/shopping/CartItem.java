@@ -4,6 +4,14 @@ public class CartItem<T extends Product> {
     private T product;
     private int quantity;
 
+    public void setProduct(T product) {
+        this.product = product;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
 
     public T getProduct() {
         return product;

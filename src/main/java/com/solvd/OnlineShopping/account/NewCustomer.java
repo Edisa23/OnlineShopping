@@ -5,19 +5,20 @@ import static com.solvd.OnlineShopping.account.InfoFinal.*;
 public class NewCustomer extends Account {
 
     public NewCustomer(String username, String password) {
-        super(username,password);
+        super(username, password);
 
-        this.username = (username.length() <= MAX_USERNAME_LENGTH) ? username : DEFAULT_USERNAME;
-        this.password = (password.length() >= MIN_PASSWORD_LENGTH && password.length() <= MAX_PASSWORD_LENGTH) ?
-                password : DEFAULT_PASSWORD;
+        this.setUsername((username.length() <= InfoFinal.MAX_USERNAME_LENGTH) ? username : InfoFinal.DEFAULT_USERNAME);
+        this.setPassword((password.length() >= InfoFinal.MIN_PASSWORD_LENGTH && password.length() <= InfoFinal.MAX_PASSWORD_LENGTH) ?
+                password : InfoFinal.DEFAULT_PASSWORD);
     }
 
     @Override
-    public boolean authenticate(String password) {
-        return this.password.equals(password);
-
+    public boolean authenticate(String enteredPassword) {
+        return this.getPassword().equals(enteredPassword);
     }
+
     @Override
     public AccountType getAccountType() {
         return AccountType.NEW;
-}}
+    }
+}

@@ -1,19 +1,10 @@
-ELECTRONICS
-1,Laptop,999.99
-2,Phone,999.99
-
-BOOKS
-11,Java Programming Book,49.99
-12, Novel,13.00
-
-SPORTS
-21,Basketball,27.99
-22,Football ball,17.99
-
-CLOTHING
-6,T-shirt,18.99
-7,Jeans,67.99
-
-BEAUTY
-16,Shampoo,17.99
-17,Perfume,79.99
+1,Laptop,999.99,Electronics
+2,Phone,999.99,DEPARTMENT1
+3,Java Programming Book,49.99,Books
+4,Novel,13.00,DEPARTMENT2
+5,Basketball,27.99,DEPARTMENT3
+6,Football ball,17.99,DEPARTMENT3
+7,T-shirt,18.99,DEPARTMENT4
+8,Jeans,67.99,DEPARTMENT4
+9,Shampoo,17.99,DEPARTMENT5
+10,Perfume,79.99,DEPARTMENT5

@@ -7,5 +7,6 @@ public interface Payment {
 
     void registerInformation();
 
+    void generateBill();
 }
 

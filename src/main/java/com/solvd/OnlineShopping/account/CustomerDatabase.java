@@ -1,6 +1,8 @@
 package com.solvd.OnlineShopping.account;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -12,7 +14,7 @@ public class CustomerDatabase {
 
     public CustomerDatabase() {
         this.accounts = new HashMap<>();
-        loadRegisterdCostumer();
+        loadRegisteredCustomers();
     }
 
     public void addAccount(Account account) {
@@ -32,18 +34,24 @@ public class CustomerDatabase {
         }
     }
 
-    private void loadRegisterdCostumer() {
-        try (BufferedReader br = new BufferedReader(new FileReader("/src/main/resourcesuser_credentials.txt"))) {
+    private void loadRegisteredCustomers() {
+        Path filePath = Paths.get("src/main/resources/user_credentials.txt");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] credentials = line.split(",");
-                String username = credentials[0];
-                String password = credentials[1];
-                String accountTypeString = credentials[2];
+                if (credentials.length == 3) {
+                    String username = credentials[0];
+                    String password = credentials[1];
+                    String accountTypeString = credentials[2];
 
-                AccountType accountType = AccountType.valueOf(accountTypeString.toUpperCase());
-                Account account = createAccount(username, password, accountType);
-                accounts.put(username, account);
+                    AccountType accountType = AccountType.valueOf(accountTypeString.toUpperCase());
+                    Account account = createAccount(username, password, accountType);
+                    accounts.put(username, account);
+                } else {
+                    System.err.println("Invalid line format: " + line);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,10 +62,11 @@ public class CustomerDatabase {
         return accounts.get(username);
     }
 
-
-    public Account authenticateUser(String username, String password) {
-
+    public Account authenticateUser(String username, String enteredPassword) {
+        Account account = getAccount(username);
+        if (account != null && account.authenticate(enteredPassword)) {
+            return account;
+        }
         return null;
     }
-
 }

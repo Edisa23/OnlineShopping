@@ -6,13 +6,12 @@ public class RegisteredCustomer extends Account {
     }
 
     @Override
-    public boolean authenticate(String password) {
-        return getPassword().equals(password);
+    public boolean authenticate(String enteredPassword) {
+        return getPassword().equals(enteredPassword);
     }
 
     @Override
     public AccountType getAccountType() {
         return AccountType.REGISTERED;
     }
-
 }

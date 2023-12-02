@@ -2,32 +2,12 @@ package com.solvd.OnlineShopping.shopping;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+
 import java.util.*;
 
 public class ProductDatabase {
-
     public enum Department {
-        DEPARTMENT1("Department 1", "Description for Department 1"),
-        DEPARTMENT2("Department 2", "Description for Department 2"),
-        DEPARTMENT3("Department 3", "Description for Department 3"),
-        DEPARTMENT4("Department 4", "Description for Department 4"),
-        DEPARTMENT5("Department 5", "Description for Department 5");
-
-        private final String displayName;
-        private final String description;
-
-        Department(String displayName, String description) {
-            this.displayName = displayName;
-            this.description = description;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        public String getDescription() {
-            return description;
-        }
+        DEPARTMENT1, DEPARTMENT2, DEPARTMENT3, DEPARTMENT4, DEPARTMENT5
     }
 
     private Map<Department, List<Product>> departmentProducts;
@@ -35,7 +15,6 @@ public class ProductDatabase {
     public ProductDatabase() {
         this.departmentProducts = new HashMap<>();
     }
-
 
     public void loadProductsFromFile(String filePath) throws FileNotFoundException {
         try (Scanner scanner = new Scanner(new File(filePath))) {
@@ -50,39 +29,55 @@ public class ProductDatabase {
                 }
 
                 if (isDepartment(line)) {
-                    currentDepartment = Department.valueOf(line.toUpperCase());
-                    departmentProducts.put(currentDepartment, new ArrayList<>(currentProducts));
-                    currentProducts.clear();
+                    currentDepartment = findDepartment(line);
                 } else {
                     String[] parts = line.split(",");
-                    if (parts.length == 4) {
+                    if (parts.length == 3 && currentDepartment != null) {
                         try {
                             int productId = Integer.parseInt(parts[0]);
                             String productName = parts[1];
                             double price = Double.parseDouble(parts[2]);
-                            Department department = Department.valueOf(parts[3].toUpperCase());
 
-                            currentProducts.add(new Product(productId, productName, price, department));
-                        } catch (IllegalArgumentException e) {
-
-                            System.err.println("Error parsing line: " + line);
+                            currentProducts.add(new Product(productId, productName, price, currentDepartment));
+                        } catch (NumberFormatException e) {
+                            handleNumberFormatException(line, e);
                         }
                     } else {
-
                         System.err.println("Invalid line format: " + line);
                     }
                 }
             }
 
             if (!currentProducts.isEmpty() && currentDepartment != null) {
-                departmentProducts.put(currentDepartment, new ArrayList<>(currentProducts));
+                departmentProducts.putIfAbsent(currentDepartment, new ArrayList<>());
+                departmentProducts.get(currentDepartment).addAll(currentProducts);
             }
+        } catch (FileNotFoundException e) {
+            System.err.println("File not found: " + filePath);
+            throw e;
+        } catch (Exception e) {
+            System.err.println("An unexpected error occurred: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     private boolean isDepartment(String line) {
-        return Arrays.stream(Department.values())
-                .anyMatch(department -> line.equalsIgnoreCase(department.name()));
+
+        return line.toUpperCase().contains("DEPARTMENT");
+    }
+
+    private Department findDepartment(String line) {
+        String[] parts = line.split(",");
+        if (parts.length >= 4) {
+            String departmentString = parts[3].trim();
+            return Department.valueOf(departmentString.toUpperCase());
+        } else {
+            throw new IllegalArgumentException("Invalid line format: " + line);
+    }}
+
+    private void handleNumberFormatException(String line, NumberFormatException e) {
+        System.err.println("Error parsing line: " + line + ". Invalid number format.");
+        e.printStackTrace();
     }
 
     public List<Product> getProductsForDepartment(Department department) {

@@ -64,7 +64,12 @@ public class CreditCard implements Payment {
         logger.info("Enter Card Holder Name:");
         this.cardHolderName = scanner.nextLine();
     }
+    @Override
+    public void generateBill() {
+        logger.info("Generating Credit Card Bill");
 
+        logger.info("Thank you for shopping with Credit Card!");
+    }
     @Override
     public String toString() {
         return "Credit Card - Payment Details";
