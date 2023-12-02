@@ -1,7 +1,5 @@
 package com.solvd.OnlineShopping.account;
 
-import static com.solvd.OnlineShopping.account.InfoFinal.*;
-
 public class NewCustomer extends Account {
 
     public NewCustomer(String username, String password) {

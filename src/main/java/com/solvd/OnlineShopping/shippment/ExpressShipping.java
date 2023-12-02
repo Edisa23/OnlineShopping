@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import com.solvd.OnlineShopping.payment.CreditCard;
 
 public class ExpressShipping extends Shipping {
-    private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
+    private static final Logger logger = Logger.getLogger(ExpressShipping.class.getName());
     private String deliveryTime;
 
     public String getDeliveryTime() {
