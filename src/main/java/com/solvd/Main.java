@@ -39,6 +39,7 @@ public class Main {
         Account currentAccount = authenticateUser(scanner, customerDatabase);
 
         while (true) {
+
             displayMainMenu();
             int authChoice = scanner.nextInt();
 
@@ -213,13 +214,14 @@ public class Main {
             if (!products.isEmpty()) {
                 System.out.println("Department: " + department);
 
-                for (Product product : products) {
+                products.forEach(product -> {
                     System.out.println("Product ID: " + product.getProductId());
                     System.out.println("Name: " + product.getProductName());
                     System.out.println("Price: $" + product.getPrice());
                     System.out.println("-------------");
-                }
+                });
             }
+
         }
 
         System.out.println("************************************");

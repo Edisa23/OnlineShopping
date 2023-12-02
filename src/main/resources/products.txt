@@ -1,6 +1,6 @@
-1,Laptop,999.99,Electronics
+1,Laptop,999.99,DEPARTMENT1
 2,Phone,999.99,DEPARTMENT1
-3,Java Programming Book,49.99,Books
+3,Java Programming Book,49.99,DEPARTMENT2
 4,Novel,13.00,DEPARTMENT2
 5,Basketball,27.99,DEPARTMENT3
 6,Football ball,17.99,DEPARTMENT3
