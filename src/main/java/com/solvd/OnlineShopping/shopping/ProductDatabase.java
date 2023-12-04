@@ -2,8 +2,8 @@ package com.solvd.OnlineShopping.shopping;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ProductDatabase {
     public enum Department {
@@ -47,5 +47,11 @@ public class ProductDatabase {
 
     public List<Product> getProductsForDepartment(Department department) {
         return departmentProducts.getOrDefault(department, new ArrayList<>());
+    }
+
+
+    public Stream<Product> getProductsForDepartmentStream() {
+        return departmentProducts.values().stream()
+                .flatMap(List::stream);
     }
 }

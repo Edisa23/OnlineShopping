@@ -2,10 +2,35 @@ package com.solvd.OnlineShopping.payment;
 
 import com.solvd.OnlineShopping.exception.InvalidPasswordException;
 import com.solvd.OnlineShopping.exception.InvalidUsernameException;
+
 import java.util.Scanner;
 import java.util.logging.Logger;
+
 public class PayPal extends Bill implements Payment {
     private static final Logger logger = Logger.getLogger(PayPal.class.getName());
+    private String email;
+    private String password;
+
+
+    public PayPal(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 
     @Override
     public void processPayment(double total) {
@@ -33,8 +58,7 @@ public class PayPal extends Bill implements Payment {
         }
     }
 
-    private void validateCredentials(String username, String password)
-            throws InvalidUsernameException, InvalidPasswordException {
+    private void validateCredentials(String username, String password) throws InvalidUsernameException, InvalidPasswordException {
         if (!username.equals("validUsername")) {
             throw new InvalidUsernameException("Invalid PayPal username.");
         }

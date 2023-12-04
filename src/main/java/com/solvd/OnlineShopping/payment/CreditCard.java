@@ -1,14 +1,31 @@
 package com.solvd.OnlineShopping.payment;
 
 import com.solvd.OnlineShopping.exception.InvalidCVVException;
+
 import java.util.Scanner;
 import java.util.logging.Logger;
 
 
-public class CreditCard implements Payment {
+public class CreditCard extends Bill implements Payment{
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
     private String cardNumber;
     private String cardHolderName;
+    private int cardCvv;
+
+
+    public CreditCard() {
+
+    }
+
+
+    public int getCardCvv() {
+        return cardCvv;
+    }
+
+    public void setCardCvv(int cardCvv) {
+        this.cardCvv = cardCvv;
+    }
+
 
     public String getCardNumber() {
         return cardNumber;
@@ -31,6 +48,11 @@ public class CreditCard implements Payment {
     public void processPayment(double total) {
 
     }
+    public CreditCard(String cardNumber, String cardHolderName, int cardCvv) {
+        this.cardNumber = cardNumber;
+        this.cardHolderName = cardHolderName;
+        this.cardCvv = cardCvv;
+    }
 
     @Override
     public boolean makePayment() {
@@ -40,6 +62,7 @@ public class CreditCard implements Payment {
             int cvv = scanner.nextInt();
 
             validateCVV(cvv);
+            setCardCvv(cvv);
             logger.info("Payment successful! Thank you for your purchase.");
             return true;
         } catch (InvalidCVVException e) {
@@ -59,19 +82,25 @@ public class CreditCard implements Payment {
     public void registerInformation() {
         Scanner scanner = new Scanner(System.in);
         logger.info("Enter Card Number:");
-        this.cardNumber = scanner.nextLine();
+        this.cardNumber = scanner.next();
 
         logger.info("Enter Card Holder Name:");
         this.cardHolderName = scanner.nextLine();
     }
+
     @Override
     public void generateBill() {
-        logger.info("Generating Credit Card Bill");
+       logger.info("Generating Credit Card Bill");
 
-        logger.info("Thank you for shopping with Credit Card!");
-    }
+       logger.info("Thank you for shopping with Credit Card!");
+}
+
     @Override
     public String toString() {
         return "Credit Card - Payment Details";
     }
+
+
+
+
 }

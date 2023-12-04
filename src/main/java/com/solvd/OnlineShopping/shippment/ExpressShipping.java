@@ -2,7 +2,6 @@ package com.solvd.OnlineShopping.shippment;
 
 import java.util.logging.Logger;
 
-import com.solvd.OnlineShopping.payment.CreditCard;
 
 public class ExpressShipping extends Shipping {
     private static final Logger logger = Logger.getLogger(ExpressShipping.class.getName());

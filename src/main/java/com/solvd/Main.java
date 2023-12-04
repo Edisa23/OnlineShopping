@@ -9,17 +9,19 @@ import com.solvd.OnlineShopping.shippment.ExpressShipping;
 import com.solvd.OnlineShopping.shippment.ShippingOption;
 import com.solvd.OnlineShopping.shippment.StandardShipping;
 import com.solvd.OnlineShopping.shopping.*;
-import java.util.logging.Logger;
-
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.logging.Logger;
+
 
 import java.util.List;
 import java.util.Scanner;
 
-
 public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
+
     public static void main(String[] args) {
 
 
@@ -150,51 +152,72 @@ public class Main {
     }
 
     private static void handleUserActions(Scanner scanner, Cart<Product> shoppingCart, ProductDatabase productDatabase,
-                                          ShippingOption shippingOption, Payment payment){
-     while (true) {
-        displayUserMenu();
-        int userChoice = scanner.nextInt();
+                                          ShippingOption shippingOption, Payment payment) {
+        int userChoice;
 
-        switch (userChoice) {
-            case 1:
+        do {
+            displayUserMenu();
+            userChoice = scanner.nextInt();
 
-                displayProductCatalog(productDatabase);
-                int productIdToAdd = scanner.nextInt();
-                int quantityToAdd = scanner.nextInt();
-                addProductToCart(productIdToAdd, quantityToAdd, productDatabase, shoppingCart);
-                break;
-            case 2:
+            switch (userChoice) {
+                case 1:
+                    displayProductCatalog(productDatabase);
+                    System.out.print("Enter the Product ID to add to cart: ");
+                    int productIdToAdd = scanner.nextInt();
+                    System.out.print("Enter the quantity to add to cart: ");
+                    int quantityToAdd = scanner.nextInt();
+                    addProductToCart(productIdToAdd, quantityToAdd, productDatabase, shoppingCart);
+                    break;
+                case 2:
+                    displayShoppingCart(shoppingCart);
+                    System.out.print("Enter your cart action (1: Update Quantity, 2: Remove Product, 3: Clear Cart): ");
+                    int cartAction = scanner.nextInt();
+                    performCartAction(cartAction, shoppingCart);
+                    break;
+                case 3:
+                    displayShippingOptions();
+                    System.out.print("Enter your choice: ");
+                    int shippingOptionChoice = scanner.nextInt();
+                    setShippingOption(shippingOptionChoice, shoppingCart);
+                    break;
+                case 4:
+                    displayPaymentMethods();
+                    System.out.print("Enter your choice: ");
+                    int paymentMethodChoice = scanner.nextInt();
+                    setPaymentMethod(paymentMethodChoice, payment, shoppingCart);
+                    break;
+                case 5:
+                    processCheckout(shoppingCart, shippingOption, payment);
+                    break;
+                case 6:
+                    logger.info("Exiting the shopping system. Thank you!");
+                    break;
+                default:
+                    logger.warning("Invalid choice. Please enter a valid option.");
+            }
+        } while (userChoice != 6);
+    }
 
-                displayShoppingCart(shoppingCart);
-                int cartAction = scanner.nextInt();
-                performCartAction(cartAction, shoppingCart);
-                break;
-            case 3:
+    private static void setShippingOption(int shippingOptionChoice, Cart<Product> shoppingCart) {
 
-                displayShippingOptions();
-                int shippingOptionChoice = scanner.nextInt();
-                setShippingOption(shippingOptionChoice, shippingOption, shoppingCart);
-                break;
-            case 4:
+        try {
+            String expressShippingClassName = "ExpressShipping";
+            Class<?> expressShippingClass = Class.forName(expressShippingClassName);
+            Constructor<?> expressShippingConstructor = expressShippingClass.getConstructor(String.class, double.class, String.class);
+            Object expressShippingObject = expressShippingConstructor.newInstance("Express Shipping", 9.99, "1-2 days");
 
-                displayPaymentMethods();
-                int paymentMethodChoice = scanner.nextInt();
-                setPaymentMethod(paymentMethodChoice, payment, shoppingCart);
-                break;
-            case 5:
+            Method setDeliveryTimeMethod = expressShippingObject.getClass().getMethod("setDeliveryTime", String.class);
+            setDeliveryTimeMethod.invoke(expressShippingObject, "Fast Delivery");
 
-                processCheckout(shoppingCart, shippingOption, payment);
-                break;
-            case 6:
-
-                logger.info("Exiting the shopping system. Thank you!");
-                System.exit(0);
-                break;
-            default:
-                logger.warning("Invalid choice. Please enter a valid option.");
-                break;
+            ShippingOption shippingOption = (ShippingOption) expressShippingObject;
+            shoppingCart.setShippingOption(shippingOption);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }}
+    }
+
+
+
 
 
     private static void displayUserMenu() {
@@ -212,21 +235,15 @@ public class Main {
     private static void displayProductCatalog(ProductDatabase productDatabase) {
         System.out.println("====== Product Catalog ======");
 
-        for (ProductDatabase.Department department : ProductDatabase.Department.values()) {
-            List<Product> products = productDatabase.getProductsForDepartment(department);
-
-            if (!products.isEmpty()) {
-                logger.info("Department: " + department);
-
-                products.forEach(product -> {
+        productDatabase.getProductsForDepartmentStream()
+                .forEach(product -> {
                     logger.info("Product ID: " + product.getProductId());
                     logger.info("Name: " + product.getProductName());
                     logger.info("Price: $" + product.getPrice());
                     System.out.println("-------------");
-                });
-            }
 
-        }
+
+                });
 
         System.out.println("************************************");
     }
@@ -243,16 +260,10 @@ public class Main {
     }
 
     private static Product findProductById(int productId, ProductDatabase productDatabase) {
-        for (ProductDatabase.Department department : ProductDatabase.Department.values()) {
-            List<Product> products = productDatabase.getProductsForDepartment(department);
-
-            for (Product product : products) {
-                if (product.getProductId() == productId) {
-                    return product;
-                }
-            }
-        }
-        return null;
+        return productDatabase.getProductsForDepartmentStream()
+                .filter(product -> product.getProductId() == productId)
+                .findFirst()
+                .orElse(null);
     }
 
     private static void displayShoppingCart(Cart<Product> shoppingCart) {
@@ -263,7 +274,7 @@ public class Main {
         } else {
             System.out.println("=== Shopping Cart ===");
 
-            for (CartItem<Product> cartItem : cartItems) {
+            cartItems.forEach(cartItem -> {
                 Product product = cartItem.getProduct();
                 int quantity = cartItem.getQuantity();
 
@@ -273,7 +284,7 @@ public class Main {
                 logger.info("Quantity: " + quantity);
                 logger.info("Total Price: $" + product.getPrice() * quantity);
                 System.out.println("-------------");
-            }
+            });
 
             logger.info("Total Cart Value: $" + shoppingCart.calculateTotal());
             System.out.println("************************************");
@@ -354,25 +365,22 @@ public class Main {
     private static void setShippingOption(int choice, ShippingOption shippingOption, Cart<Product> shoppingCart) {
         switch (choice) {
             case 1:
-
                 shippingOption = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
-                shoppingCart.setShippingOption(shippingOption);
                 logger.info("Shipping option set to Standard Shipping.");
                 break;
             case 2:
-
                 shippingOption = new ExpressShipping("Express Shipping", 12.99, "1-2 days");
-                shoppingCart.setShippingOption(shippingOption);
                 logger.info("Shipping option set to Express Shipping.");
                 break;
             case 3:
-
                 break;
             default:
                 logger.warning("Invalid choice. Please enter a valid option.");
                 break;
         }
+        shoppingCart.setShippingOption(shippingOption);
     }
+
 
     private static void displayPaymentMethods() {
         System.out.println("=== Payment Methods ===");
@@ -384,26 +392,62 @@ public class Main {
     }
 
     private static void setPaymentMethod(int choice, Payment payment, Cart<Product> shoppingCart) {
+        Scanner scanner = new Scanner(System.in);
+        Payment selectedPayment = createPayment(choice, scanner);
+
+        if (selectedPayment != null) {
+            shoppingCart.setPayment(selectedPayment);
+            logger.info("Payment method set successfully.");
+        }
+    }
+
+    private static Payment createPayment(int choice, Scanner scanner) {
         switch (choice) {
             case 1:
-
-                payment = new CreditCard();
-                shoppingCart.setPayment(payment);
-                logger.info("Payment method set to Credit Card.");
-                break;
+                return createCreditCardPayment(scanner);
             case 2:
-
-                payment = new PayPal();
-                shoppingCart.setPayment(payment);
-                logger.info("Payment method set to PayPal.");
-                break;
-            case 3:
-
-                break;
+                return createPayPalPayment(scanner);
             default:
                 logger.warning("Invalid choice. Please enter a valid option.");
-                break;
+                return null;
         }
+    }
+
+    private static CreditCard createCreditCardPayment(Scanner scanner) {
+        CreditCard creditCard = new CreditCard();
+
+        logger.info("Enter Credit Card Number:");
+        String cardNumber = scanner.next();
+        creditCard.setCardNumber(cardNumber);
+
+        logger.info("Enter Cardholder Name:");
+        String cardholderName = scanner.next();
+        creditCard.setCardHolderName(cardholderName);
+
+        logger.info("Enter CVV:");
+        int cvv = scanner.nextInt();
+        creditCard.setCardCvv(cvv);
+
+        return creditCard;
+    }
+
+
+    private static PayPal createPayPalPayment(Scanner scanner) {
+        PayPal payPal = null;
+
+        try {
+            logger.info("Enter PayPal Email:");
+            String email = scanner.next();
+
+            logger.info("Enter PayPal Password:");
+            String password = scanner.next();
+
+            payPal = new PayPal(email, password);
+        } catch (Exception e) {
+            logger.warning("Invalid input for PayPal. Please try again.");
+        }
+
+        return payPal;
     }
 
     private static void processCheckout(Cart<Product> shoppingCart, ShippingOption shippingOption, Payment payment) {
@@ -441,4 +485,5 @@ public class Main {
         } else {
             logger.warning("Payment failed. Please try again or choose a different payment method.");
         }
-    }}
+    }
+}

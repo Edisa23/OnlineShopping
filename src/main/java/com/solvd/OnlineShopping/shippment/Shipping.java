@@ -1,7 +1,6 @@
 package com.solvd.OnlineShopping.shippment;
 
 import com.solvd.OnlineShopping.exception.InvalidShippingOptionException;
-import com.solvd.OnlineShopping.payment.CreditCard;
 
 import java.util.logging.Logger;
 
