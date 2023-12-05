@@ -3,23 +3,28 @@ package com.solvd.OnlineShopping.payment;
 import com.solvd.OnlineShopping.exception.InvalidPasswordException;
 import com.solvd.OnlineShopping.exception.InvalidUsernameException;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Scanner;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 public class PayPal extends Bill implements Payment {
     private static final Logger logger = Logger.getLogger(PayPal.class.getName());
     private String email;
-    private String password;
+    private String passwordHash;
 
 
     public PayPal(String email, String password) {
-        this.email = email;
-        this.password = password;
+        this.setEmail(email);
+        this.setPassword(password);
     }
 
 
     public void setPassword(String password) {
-        this.password = password;
+        this.passwordHash = hashPassword(password);
     }
 
 
@@ -28,9 +33,22 @@ public class PayPal extends Bill implements Payment {
     }
 
     public void setEmail(String email) {
+        if (!validateEmail(email)) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
         this.email = email;
     }
 
+    private String hashPassword(String password) {
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing password", e);
+        }
+    }
 
     @Override
     public void processPayment(double total) {
@@ -56,6 +74,13 @@ public class PayPal extends Bill implements Payment {
             logger.warning("Payment failed. " + e.getMessage());
             return false;
         }
+    }
+
+    private boolean validateEmail(String email) {
+
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        return pattern.matcher(email).matches();
     }
 
     private void validateCredentials(String username, String password) throws InvalidUsernameException, InvalidPasswordException {

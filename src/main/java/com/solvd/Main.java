@@ -1,11 +1,9 @@
 package com.solvd;
 
 import com.solvd.OnlineShopping.account.*;
-import com.solvd.OnlineShopping.payment.Bill;
 import com.solvd.OnlineShopping.payment.CreditCard;
 import com.solvd.OnlineShopping.payment.PayPal;
 import com.solvd.OnlineShopping.payment.Payment;
-import com.solvd.OnlineShopping.shippment.ExpressShipping;
 import com.solvd.OnlineShopping.shippment.ShippingOption;
 import com.solvd.OnlineShopping.shippment.StandardShipping;
 import com.solvd.OnlineShopping.shopping.*;
@@ -73,24 +71,6 @@ public class Main {
                 handleUserActions(scanner, shoppingCart, productDatabase, shippingOption, payment, cart);
             }
         }
-    }
-
-
-    private static Account authenticateUser(Scanner scanner, CustomerDatabase customerDatabase) {
-        logger.info("Enter username:");
-        String username = scanner.next();
-        logger.info("Enter password:");
-        String password = scanner.next();
-
-        Account authenticatedAccount = customerDatabase.authenticateUser(username, password);
-
-        if (authenticatedAccount != null) {
-            logger.info("Authentication successful. Welcome, " + username + "!");
-        } else {
-            logger.warning("Authentication failed. Please check your credentials.");
-        }
-
-        return authenticatedAccount;
     }
 
 
@@ -197,24 +177,44 @@ public class Main {
         } while (userChoice != 6);
     }
 
-    private static void setShippingOption(int shippingOptionChoice, Cart<Product> shoppingCart) {
+    private static void setShippingOption(int choice, Cart<Product> shoppingCart) {
 
         try {
-            String expressShippingClassName = "ExpressShipping";
-            Class<?> expressShippingClass = Class.forName(expressShippingClassName);
-            Constructor<?> expressShippingConstructor = expressShippingClass.getConstructor(String.class, double.class, String.class);
-            Object expressShippingObject = expressShippingConstructor.newInstance("Express Shipping", 9.99, "1-2 days");
+            ShippingOption shippingOption = null;
 
-            Method setDeliveryTimeMethod = expressShippingObject.getClass().getMethod("setDeliveryTime", String.class);
-            setDeliveryTimeMethod.invoke(expressShippingObject, "Fast Delivery");
+            switch (choice) {
+                case 1:
+                    shippingOption = createShippingOption("com.solvd.OnlineShopping.shippment.StandardShipping", "Standard Shipping", 5.99, "3-5 days");
+                    break;
+                case 2:
+                    shippingOption = createShippingOption("com.solvd.OnlineShopping.shippment.ExpressShipping", "Express Shipping", 12.99, "1-2 days");
+                    break;
+                case 3:
+                    break;
+                default:
+                    logger.warning("Invalid choice. Please enter a valid option.");
+                    break;
+            }
 
-            ShippingOption shippingOption = (ShippingOption) expressShippingObject;
-            shoppingCart.setShippingOption(shippingOption);
+            if (shippingOption != null) {
+                shoppingCart.setShippingOption(shippingOption);
+                logger.info("Shipping option set successfully.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private static ShippingOption createShippingOption(String className, String optionName, double baseFee, String deliveryTime) throws Exception {
+        Class<?> shippingClass = Class.forName(className);
+        Constructor<?> shippingConstructor = shippingClass.getConstructor(String.class, double.class, String.class);
+        Object shippingObject = shippingConstructor.newInstance(optionName, baseFee, deliveryTime);
+
+        Method setDeliveryTimeMethod = shippingObject.getClass().getMethod("setDeliveryTime", String.class);
+        setDeliveryTimeMethod.invoke(shippingObject, "Fast Delivery");
+
+        return (ShippingOption) shippingObject;
+    }
 
     private static void displayUserMenu() {
         System.out.println("====== Menu ======");
@@ -357,26 +357,6 @@ public class Main {
         System.out.println("************************************");
         logger.info("Enter your choice: ");
     }
-
-    private static void setShippingOption(int choice, ShippingOption shippingOption, Cart<Product> shoppingCart) {
-        switch (choice) {
-            case 1:
-                shippingOption = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
-                logger.info("Shipping option set to Standard Shipping.");
-                break;
-            case 2:
-                shippingOption = new ExpressShipping("Express Shipping", 12.99, "1-2 days");
-                logger.info("Shipping option set to Express Shipping.");
-                break;
-            case 3:
-                break;
-            default:
-                logger.warning("Invalid choice. Please enter a valid option.");
-                break;
-        }
-        shoppingCart.setShippingOption(shippingOption);
-    }
-
 
     private static void displayPaymentMethods() {
         System.out.println("=== Payment Methods ===");

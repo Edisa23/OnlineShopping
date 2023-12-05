@@ -2,6 +2,10 @@ package com.solvd.OnlineShopping.payment;
 
 import com.solvd.OnlineShopping.exception.InvalidCVVException;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Scanner;
 import java.util.logging.Logger;
 
@@ -10,20 +14,29 @@ public class CreditCard extends Bill implements Payment {
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
     private String cardNumber;
     private String cardHolderName;
-    private int cardCvv;
+    private String cardCvvHash;
 
 
     public CreditCard() {
 
     }
 
-
     public int getCardCvv() {
-        return cardCvv;
+        throw new UnsupportedOperationException("CVV retrieval not allowed.");
     }
 
     public void setCardCvv(int cardCvv) {
-        this.cardCvv = cardCvv;
+        this.cardCvvHash = hashCVV(cardCvv);
+    }
+    private String hashCVV(int cardCvv) {
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(String.valueOf(cardCvv).getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing CVV", e);
+        }
     }
 
 
@@ -32,6 +45,9 @@ public class CreditCard extends Bill implements Payment {
     }
 
     public void setCardNumber(String cardNumber) {
+        if (!validateCreditCardNumber(cardNumber)) {
+            throw new IllegalArgumentException("Invalid credit card number");
+        }
         this.cardNumber = cardNumber;
     }
 
@@ -42,8 +58,10 @@ public class CreditCard extends Bill implements Payment {
     public void setCardHolderName(String cardHolderName) {
         this.cardHolderName = cardHolderName;
     }
+    private boolean validateCreditCardNumber(String cardNumber) {
 
-
+        return cardNumber.matches("\\d{16}");
+    }
     @Override
     public void processPayment(double total) {
 
@@ -52,7 +70,7 @@ public class CreditCard extends Bill implements Payment {
     public CreditCard(String cardNumber, String cardHolderName, int cardCvv) {
         this.cardNumber = cardNumber;
         this.cardHolderName = cardHolderName;
-        this.cardCvv = cardCvv;
+        this.setCardCvv(cardCvv);
     }
 
     @Override
@@ -62,23 +80,12 @@ public class CreditCard extends Bill implements Payment {
             logger.info("Enter CVV:");
             int cvv = scanner.nextInt();
 
-            validateCVV(cvv);
             setCardCvv(cvv);
             logger.info("Payment successful! Thank you for your purchase.");
             return true;
-        } catch (InvalidCVVException e) {
-            logger.warning("Payment failed. " + e.getMessage());
-            return false;
+
         }
     }
-
-    private void validateCVV(int cvv) throws InvalidCVVException {
-        if (cvv <= 0) {
-            throw new InvalidCVVException("Invalid CVV. Please check your information and try again.");
-        }
-    }
-
-
     @Override
     public void registerInformation() {
         Scanner scanner = new Scanner(System.in);
