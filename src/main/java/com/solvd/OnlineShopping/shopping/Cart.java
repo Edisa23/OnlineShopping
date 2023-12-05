@@ -13,11 +13,21 @@ public class Cart<T extends Product> {
     private List<CartItem<T>> cartItems;
     private ShippingOption shippingOption;
     private Payment payment;
+    private Discount<T> discount;
     public Cart() {
         cartItems = new ArrayList<>();
     }
 
-    private Discount<T> discount;
+    public void setDiscount(Discount<T> discount) {
+        this.discount = discount;
+    }
+
+
+    public Discount<T> getDiscount() {
+        return discount;
+    }
+
+
 
     public Cart(Discount<T> discount) {
         cartItems = new ArrayList<>();

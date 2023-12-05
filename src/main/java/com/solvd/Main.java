@@ -26,7 +26,7 @@ public class Main {
 
 
         Cart<Product> shoppingCart = new Cart<>();
-        Cart<Product> cart = new Cart<>(new Discount<>(product -> product.getPrice() * 0.5));
+        Cart<Product> cart = new Cart<>(new Discount<>(product -> product.getPrice() * 0.1));
 
         ProductDatabase productDatabase = new ProductDatabase();
         try {
@@ -42,10 +42,9 @@ public class Main {
         Payment payment = new CreditCard();
         Scanner scanner = new Scanner(System.in);
 
-        Account currentAccount = authenticateUser(scanner, customerDatabase);
+        Account currentAccount = null;
 
         while (true) {
-
             displayMainMenu();
             int authChoice = scanner.nextInt();
 
@@ -71,10 +70,11 @@ public class Main {
             }
 
             if (currentAccount != null) {
-                handleUserActions(scanner, shoppingCart, productDatabase, shippingOption, payment);
+                handleUserActions(scanner, shoppingCart, productDatabase, shippingOption, payment, cart);
             }
         }
     }
+
 
     private static Account authenticateUser(Scanner scanner, CustomerDatabase customerDatabase) {
         logger.info("Enter username:");
@@ -100,7 +100,7 @@ public class Main {
 
 
         if (customerDatabase.getAccount(username) != null) {
-            logger.info("Username already exists. Please choose a different one.");
+            logger.info("Username already exists. Please Sign In.");
             return null;
         }
 
@@ -142,7 +142,7 @@ public class Main {
     }
 
     private static void displayMainMenu() {
-        System.out.println("==== Main Menu ===");
+        System.out.println("==== Welcome to Solvd Shop ===");
         System.out.println("1. Sign Up");
         System.out.println("2. Sign In");
         System.out.println("3. Continue as Guest");
@@ -151,8 +151,7 @@ public class Main {
         logger.info("Enter your choice: ");
     }
 
-    private static void handleUserActions(Scanner scanner, Cart<Product> shoppingCart, ProductDatabase productDatabase,
-                                          ShippingOption shippingOption, Payment payment) {
+    private static void handleUserActions(Scanner scanner, Cart<Product> shoppingCart, ProductDatabase productDatabase, ShippingOption shippingOption, Payment payment, Cart<Product> cart) {
         int userChoice;
 
         do {
@@ -166,7 +165,7 @@ public class Main {
                     int productIdToAdd = scanner.nextInt();
                     System.out.print("Enter the quantity to add to cart: ");
                     int quantityToAdd = scanner.nextInt();
-                    addProductToCart(productIdToAdd, quantityToAdd, productDatabase, shoppingCart);
+                    addProductToCart(productIdToAdd, quantityToAdd, productDatabase, shoppingCart, cart);
                     break;
                 case 2:
                     displayShoppingCart(shoppingCart);
@@ -217,9 +216,6 @@ public class Main {
     }
 
 
-
-
-
     private static void displayUserMenu() {
         System.out.println("====== Menu ======");
         System.out.println("1. View Products and Add to Cart");
@@ -235,35 +231,35 @@ public class Main {
     private static void displayProductCatalog(ProductDatabase productDatabase) {
         System.out.println("====== Product Catalog ======");
 
-        productDatabase.getProductsForDepartmentStream()
-                .forEach(product -> {
-                    logger.info("Product ID: " + product.getProductId());
-                    logger.info("Name: " + product.getProductName());
-                    logger.info("Price: $" + product.getPrice());
-                    System.out.println("-------------");
+        productDatabase.getProductsForDepartmentStream().forEach(product -> {
+            logger.info("Product ID: " + product.getProductId());
+            logger.info("Name: " + product.getProductName());
+            logger.info("Price: $" + product.getPrice());
+            System.out.println("-------------");
 
 
-                });
+        });
 
         System.out.println("************************************");
     }
 
-    private static void addProductToCart(int productId, int quantity, ProductDatabase productDatabase, Cart<Product> shoppingCart) {
+    private static void addProductToCart(int productId, int quantity, ProductDatabase productDatabase, Cart<Product> shoppingCart, Cart<Product> cart) {
         Product productToAdd = findProductById(productId, productDatabase);
 
         if (productToAdd != null) {
+
+            double discountAmount = cart.getDiscount().calculateDiscount(productToAdd);
+            productToAdd.setPrice(productToAdd.getPrice() - discountAmount);
+
             shoppingCart.addProduct(productToAdd, quantity);
-            logger.info(quantity + " " + productToAdd.getProductName() + "(s) added to the cart.");
+            logger.info(quantity + " " + productToAdd.getProductName() + "(s) added to the cart with a discount of $" + discountAmount);
         } else {
             logger.warning("Product with ID " + productId + " not found in the catalog.");
         }
     }
 
     private static Product findProductById(int productId, ProductDatabase productDatabase) {
-        return productDatabase.getProductsForDepartmentStream()
-                .filter(product -> product.getProductId() == productId)
-                .findFirst()
-                .orElse(null);
+        return productDatabase.getProductsForDepartmentStream().filter(product -> product.getProductId() == productId).findFirst().orElse(null);
     }
 
     private static void displayShoppingCart(Cart<Product> shoppingCart) {
@@ -456,34 +452,22 @@ public class Main {
             return;
         }
 
-
         displayShoppingCart(shoppingCart);
-
 
         logger.info("Selected Shipping Option:");
         shippingOption.displayOptionDetails();
-
 
         double subtotal = shoppingCart.calculateTotal();
         double shippingFee = shippingOption.calculateShippingFee();
         double total = subtotal + shippingFee;
 
-
         logger.info("Subtotal: $" + subtotal);
         logger.info("Shipping Fee: $" + shippingFee);
         logger.info("Total: $" + total);
 
+        logger.info("Transaction successful! Thank you for your purchase.");
+        shoppingCart.getCartItems().clear();
 
-        boolean paymentSuccess = payment.makePayment();
-
-        if (paymentSuccess) {
-
-            Bill bill = (Bill) payment;
-            bill.generateBill();
-            logger.info("Transaction successful! Thank you for your purchase.");
-            shoppingCart.getCartItems().clear();
-        } else {
-            logger.warning("Payment failed. Please try again or choose a different payment method.");
-        }
+        System.exit(0);
     }
 }
