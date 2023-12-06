@@ -1,12 +1,13 @@
 package com.solvd.OnlineShopping.account;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CustomerDatabase {
 
@@ -37,7 +38,7 @@ public class CustomerDatabase {
     private void loadRegisteredCustomers() {
         Path filePath = Paths.get("src/main/resources/user_credentials.txt");
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()))) {
+        try (BufferedReader br = Files.newBufferedReader(filePath)) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] credentials = line.split(",");
@@ -54,7 +55,7 @@ public class CustomerDatabase {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.getLogger(CustomerDatabase.class.getName()).log(Level.SEVERE, "Error loading registered customers", e);
         }
     }
 

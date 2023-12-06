@@ -14,6 +14,7 @@ public class Cart<T extends Product> {
     private ShippingOption shippingOption;
     private Payment payment;
     private Discount<T> discount;
+
     public Cart() {
         cartItems = new ArrayList<>();
     }
@@ -27,41 +28,13 @@ public class Cart<T extends Product> {
         return discount;
     }
 
-
-
-    public Cart(Discount<T> discount) {
-        cartItems = new ArrayList<>();
-        this.discount = discount;
-    }
-
-    public void addProduct(T product, int quantity) {
-        try {
-            validateProduct(product);
-            cartItems.add(new CartItem<>(product, quantity));
-            logger.info(quantity + " " + product.getProductName() + "(s) added to the cart.");
-        } catch (InvalidProductException e) {
-            logger.warning("Product not added to the cart. " + e.getMessage());
-        }
-    }
-    private void validateProduct(T product) throws InvalidProductException {
-        if (product == null || product.getProductId() <= 0 || product.getProductName().trim().isEmpty() || product.getPrice() < 0) {
-            throw new InvalidProductException("Invalid product details.");
-        }
-    }
-    public void removeProduct(int productId) {
-        cartItems.removeIf(item -> item.getProduct().getProductId() == productId);
-        logger.info("Product removed from the cart.");
-    }
     public List<CartItem<T>> getCartItems() {
         return cartItems;
     }
 
-    public double calculateTotal() {
-        double total = 0;
-        for (CartItem<T> item : cartItems) {
-            total += item.getProduct().getPrice() * item.getQuantity();
-        }
-        return total;
+    public Cart(Discount<T> discount) {
+        cartItems = new ArrayList<>();
+        this.discount = discount;
     }
 
     public void setShippingOption(ShippingOption shippingOption) {
@@ -73,4 +46,35 @@ public class Cart<T extends Product> {
         this.payment = payment;
         logger.info("Payment method set to: " + payment.getClass().getSimpleName());
     }
+
+    public void addProduct(T product, int quantity) {
+        try {
+            validateProduct(product);
+            cartItems.add(new CartItem<>(product, quantity));
+            logger.info(quantity + " " + product.getProductName() + "(s) added to the cart.");
+        } catch (InvalidProductException e) {
+            logger.warning("Product not added to the cart. " + e.getMessage());
+        }
+    }
+
+    private void validateProduct(T product) throws InvalidProductException {
+        if (product == null || product.getProductId() <= 0 || product.getProductName().trim().isEmpty() || product.getPrice() < 0) {
+            throw new InvalidProductException("Invalid product details.");
+        }
+    }
+
+    public void removeProduct(int productId) {
+        cartItems.removeIf(item -> item.getProduct().getProductId() == productId);
+        logger.info("Product removed from the cart.");
+    }
+
+
+    public double calculateTotal() {
+        double total = 0;
+        for (CartItem<T> item : cartItems) {
+            total += item.getProduct().getPrice() * item.getQuantity();
+        }
+        return total;
+    }
+
 }

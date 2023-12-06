@@ -10,7 +10,7 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 
-public class CreditCard extends Bill implements Payment {
+public class CreditCard  implements Payment {
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
     private String cardNumber;
     private String cardHolderName;
@@ -96,12 +96,7 @@ public class CreditCard extends Bill implements Payment {
         this.cardHolderName = scanner.nextLine();
     }
 
-    @Override
-    public void generateBill() {
-        logger.info("Generating Credit Card Bill");
 
-        logger.info("Thank you for shopping with Credit Card!");
-    }
 
     @Override
     public String toString() {

@@ -11,7 +11,7 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-public class PayPal extends Bill implements Payment {
+public class PayPal implements Payment {
     private static final Logger logger = Logger.getLogger(PayPal.class.getName());
     private String email;
     private String passwordHash;
@@ -76,6 +76,11 @@ public class PayPal extends Bill implements Payment {
         }
     }
 
+    @Override
+    public void registerInformation() {
+
+    }
+
     private boolean validateEmail(String email) {
 
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
@@ -96,17 +101,9 @@ public class PayPal extends Bill implements Payment {
         logger.info("Bank account linked successfully!");
     }
 
-    @Override
-    public void registerInformation() {
 
-    }
 
-    @Override
-    public void generateBill() {
-        logger.info("Generating PayPal Bill");
 
-        logger.info("Thank you for shopping with PayPal!");
-    }
 
     @Override
     public String toString() {

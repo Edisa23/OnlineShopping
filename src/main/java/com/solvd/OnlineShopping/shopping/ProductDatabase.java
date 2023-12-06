@@ -13,7 +13,7 @@ public class ProductDatabase {
     private Map<Department, List<Product>> departmentProducts;
 
     public ProductDatabase() {
-        this.departmentProducts = new HashMap<>();
+        this.departmentProducts = new EnumMap<>(Department.class);
     }
 
     public void loadProductsFromFile(String filePath) throws FileNotFoundException {
@@ -46,12 +46,11 @@ public class ProductDatabase {
     }
 
     public List<Product> getProductsForDepartment(Department department) {
-        return departmentProducts.getOrDefault(department, new ArrayList<>());
+        return departmentProducts.getOrDefault(department, List.of());
     }
 
 
     public Stream<Product> getProductsForDepartmentStream() {
-        return departmentProducts.values().stream()
-                .flatMap(List::stream);
+        return departmentProducts.values().stream().flatMap(List::stream);
     }
 }

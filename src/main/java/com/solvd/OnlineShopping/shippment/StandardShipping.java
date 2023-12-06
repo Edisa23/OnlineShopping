@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 public class StandardShipping extends Shipping {
     private static final Logger logger = Logger.getLogger(StandardShipping.class.getName());
-    private static final double WEIGHT_COST_FACTOR = 0.1;
     private String deliveryTime;
     protected String optionName;
     protected double baseFee;
@@ -29,6 +28,11 @@ public class StandardShipping extends Shipping {
         this.baseFee = baseFee;
     }
 
+    public void setDeliveryTime(String deliveryTime) {
+        validateDeliveryTime(deliveryTime);
+        this.deliveryTime = deliveryTime;
+    }
+
     public StandardShipping(String optionName, double baseFee, String deliveryTime) {
         super(optionName, baseFee);
         validateDeliveryTime(deliveryTime);
@@ -36,15 +40,6 @@ public class StandardShipping extends Shipping {
 
     }
 
-    public void setDeliveryTime(String deliveryTime) {
-        validateDeliveryTime(deliveryTime);
-        this.deliveryTime = deliveryTime;
-    }
-
-    @Override
-    public double calculateShippingCost(double weight) {
-        return baseFee + (weight * WEIGHT_COST_FACTOR);
-    }
 
     @Override
     public void displayOptionDetails() {

@@ -1,6 +1,7 @@
 package com.solvd;
 
 import com.solvd.OnlineShopping.account.*;
+
 import com.solvd.OnlineShopping.payment.CreditCard;
 import com.solvd.OnlineShopping.payment.PayPal;
 import com.solvd.OnlineShopping.payment.Payment;
@@ -19,7 +20,16 @@ import java.util.Scanner;
 
 public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
-
+    private static final int SIGN_UP = 1;
+    private static final int SIGN_IN = 2;
+    private static final int CONTINUE_AS_GUEST = 3;
+    private static final int EXIT = 4;
+    private static final int VIEW_PRODUCTS = 1;
+    private static final int VIEW_CART = 2;
+    private static final int SET_SHIPPING_OPTION = 3;
+    private static final int SET_PAYMENT_METHOD = 4;
+    private static final int CHECKOUT = 5;
+    private static final int EXIT_USER_MENU = 6;
     public static void main(String[] args) {
 
 
@@ -30,7 +40,7 @@ public class Main {
         try {
             productDatabase.loadProductsFromFile("src/main/resources/products.txt");
         } catch (FileNotFoundException e) {
-            System.err.println("Error loading products: " + e.getMessage());
+            logger.warning("Error loading products: " + e.getMessage());
             return;
         }
 
@@ -47,17 +57,17 @@ public class Main {
             int authChoice = scanner.nextInt();
 
             switch (authChoice) {
-                case 1:
+                case SIGN_UP:
                     currentAccount = signUp(scanner, customerDatabase);
                     break;
-                case 2:
+                case SIGN_IN:
                     currentAccount = signIn(scanner, customerDatabase);
                     break;
-                case 3:
+                case CONTINUE_AS_GUEST:
                     currentAccount = new GuestCustomer(InfoFinal.DEFAULT_USERNAME, InfoFinal.DEFAULT_PASSWORD);
                     logger.info("Continuing as a guest.");
                     break;
-                case 4:
+                case EXIT:
                     logger.info("Exiting the program.");
                     scanner.close();
                     System.exit(0);
@@ -139,7 +149,7 @@ public class Main {
             userChoice = scanner.nextInt();
 
             switch (userChoice) {
-                case 1:
+                case  VIEW_PRODUCTS:
                     displayProductCatalog(productDatabase);
                     System.out.print("Enter the Product ID to add to cart: ");
                     int productIdToAdd = scanner.nextInt();
@@ -147,28 +157,28 @@ public class Main {
                     int quantityToAdd = scanner.nextInt();
                     addProductToCart(productIdToAdd, quantityToAdd, productDatabase, shoppingCart, cart);
                     break;
-                case 2:
+                case VIEW_CART:
                     displayShoppingCart(shoppingCart);
                     System.out.print("Enter your cart action (1: Update Quantity, 2: Remove Product, 3: Clear Cart): ");
                     int cartAction = scanner.nextInt();
                     performCartAction(cartAction, shoppingCart);
                     break;
-                case 3:
+                case SET_SHIPPING_OPTION:
                     displayShippingOptions();
-                    System.out.print("Enter your choice: ");
+                    logger.info("Enter your choice: ");
                     int shippingOptionChoice = scanner.nextInt();
                     setShippingOption(shippingOptionChoice, shoppingCart);
                     break;
-                case 4:
+                case SET_PAYMENT_METHOD:
                     displayPaymentMethods();
-                    System.out.print("Enter your choice: ");
+                    logger.info("Enter your choice: ");
                     int paymentMethodChoice = scanner.nextInt();
                     setPaymentMethod(paymentMethodChoice, payment, shoppingCart);
                     break;
-                case 5:
-                    processCheckout(shoppingCart, shippingOption, payment);
+                case CHECKOUT:
+                    processCheckout(shoppingCart, shippingOption,payment);
                     break;
-                case 6:
+                case EXIT_USER_MENU:
                     logger.info("Exiting the shopping system. Thank you!");
                     break;
                 default:
@@ -431,6 +441,8 @@ public class Main {
             logger.info("Your shopping cart is empty. Please add items before checking out.");
             return;
         }
+
+        displayShoppingCart(shoppingCart);
 
         displayShoppingCart(shoppingCart);
 

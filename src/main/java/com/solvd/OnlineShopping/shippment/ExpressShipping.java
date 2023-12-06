@@ -29,11 +29,6 @@ public class ExpressShipping extends Shipping {
         logger.info("Estimated Delivery Time: " + deliveryTime);
     }
 
-    @Override
-    public double calculateShippingCost(double weight) {
-
-        return baseFee * weight * 1.2;
-    }
 
 }
 
