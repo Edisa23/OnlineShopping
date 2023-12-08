@@ -38,21 +38,16 @@ public class Product {
         this.price = price;
     }
 
-    public ProductDatabase.Department getDepartment() {
-        return department;
-    }
-
     public void setDepartment(ProductDatabase.Department department) {
         this.department = department;
     }
 
+    public ProductDatabase.Department getDepartment() {
+        return department;
+    }
+
     @Override
     public String toString() {
-        return "Product{" +
-                "productId=" + productId +
-                ", productName='" + productName + '\'' +
-                ", price=" + price +
-                ", department=" + department +
-                '}';
+        return "Product{" + "productId=" + productId + ", productName='" + productName + '\'' + ", price=" + price + ", department=" + department + '}';
     }
 }

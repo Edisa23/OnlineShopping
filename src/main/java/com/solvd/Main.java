@@ -5,6 +5,7 @@ import com.solvd.OnlineShopping.account.*;
 import com.solvd.OnlineShopping.payment.CreditCard;
 import com.solvd.OnlineShopping.payment.PayPal;
 import com.solvd.OnlineShopping.payment.Payment;
+import com.solvd.OnlineShopping.shippment.ExpressShipping;
 import com.solvd.OnlineShopping.shippment.ShippingOption;
 import com.solvd.OnlineShopping.shippment.StandardShipping;
 import com.solvd.OnlineShopping.shopping.*;
@@ -30,6 +31,7 @@ public class Main {
     private static final int SET_PAYMENT_METHOD = 4;
     private static final int CHECKOUT = 5;
     private static final int EXIT_USER_MENU = 6;
+
     public static void main(String[] args) {
 
 
@@ -45,8 +47,10 @@ public class Main {
         }
 
         CustomerDatabase customerDatabase = new CustomerDatabase();
+        ShippingOption shippingOption = null;
+        ExpressShipping expressShipping = new ExpressShipping("Express Shipping", 12.99, "1-2 days");
+        StandardShipping standardShipping = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
 
-        ShippingOption shippingOption = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
         Payment payment = new CreditCard();
         Scanner scanner = new Scanner(System.in);
 
@@ -149,7 +153,7 @@ public class Main {
             userChoice = scanner.nextInt();
 
             switch (userChoice) {
-                case  VIEW_PRODUCTS:
+                case VIEW_PRODUCTS:
                     displayProductCatalog(productDatabase);
                     System.out.print("Enter the Product ID to add to cart: ");
                     int productIdToAdd = scanner.nextInt();
@@ -176,7 +180,7 @@ public class Main {
                     setPaymentMethod(paymentMethodChoice, payment, shoppingCart);
                     break;
                 case CHECKOUT:
-                    processCheckout(shoppingCart, shippingOption,payment);
+                    processCheckout(shoppingCart, shippingOption, payment);
                     break;
                 case EXIT_USER_MENU:
                     logger.info("Exiting the shopping system. Thank you!");
@@ -457,9 +461,30 @@ public class Main {
         logger.info("Shipping Fee: $" + shippingFee);
         logger.info("Total: $" + total);
 
+        generateBill(shoppingCart, shippingOption, subtotal, shippingFee, total);
+
         logger.info("Transaction successful! Thank you for your purchase.");
         shoppingCart.getCartItems().clear();
-
         System.exit(0);
     }
+
+    private static void generateBill(Cart<Product> shoppingCart, ShippingOption shippingOption, double subtotal, double shippingFee, double total) {
+
+
+        logger.info("=== BILL === ");
+
+
+        logger.info("Items in Cart:");
+        displayShoppingCart(shoppingCart);
+
+        logger.info("Selected Shipping Option:");
+        shippingOption.displayOptionDetails();
+        logger.info("Subtotal: $" + subtotal);
+        logger.info("Shipping Fee: $" + shippingFee);
+        logger.info("Total: $" + total);
+
+
+        logger.info("=======================");
+    }
+
 }

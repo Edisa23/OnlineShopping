@@ -10,7 +10,7 @@ import java.util.Scanner;
 import java.util.logging.Logger;
 
 
-public class CreditCard  implements Payment {
+public class CreditCard implements Payment {
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
     private String cardNumber;
     private String cardHolderName;
@@ -28,6 +28,7 @@ public class CreditCard  implements Payment {
     public void setCardCvv(int cardCvv) {
         this.cardCvvHash = hashCVV(cardCvv);
     }
+
     private String hashCVV(int cardCvv) {
 
         try {
@@ -58,10 +59,12 @@ public class CreditCard  implements Payment {
     public void setCardHolderName(String cardHolderName) {
         this.cardHolderName = cardHolderName;
     }
+
     private boolean validateCreditCardNumber(String cardNumber) {
 
         return cardNumber.matches("\\d{16}");
     }
+
     @Override
     public void processPayment(double total) {
 
@@ -86,6 +89,7 @@ public class CreditCard  implements Payment {
 
         }
     }
+
     @Override
     public void registerInformation() {
         Scanner scanner = new Scanner(System.in);
@@ -95,7 +99,6 @@ public class CreditCard  implements Payment {
         logger.info("Enter Card Holder Name:");
         this.cardHolderName = scanner.nextLine();
     }
-
 
 
     @Override

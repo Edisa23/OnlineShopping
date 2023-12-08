@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 public abstract class Shipping implements ShippingOption {
     private static final Logger logger = Logger.getLogger(Shipping.class.getName());
-    private static final double WEIGHT_COST_FACTOR = 0.1;
+
     protected String optionName;
     protected double baseFee;
 
@@ -21,9 +21,6 @@ public abstract class Shipping implements ShippingOption {
         return baseFee;
     }
 
-    public double calculateShippingCost(double weight) {
-        return baseFee + (weight * WEIGHT_COST_FACTOR);
-    }
 
     @Override
     public void displayOptionDetails() {

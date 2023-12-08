@@ -24,6 +24,15 @@ public class Cart<T extends Product> {
     }
 
 
+    public void setShippingOption(ShippingOption shippingOption) {
+        this.shippingOption = shippingOption;
+        logger.info("Shipping option set to: " + shippingOption.getClass().getSimpleName());
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+        logger.info("Payment method set to: " + payment.getClass().getSimpleName());
+    }
     public Discount<T> getDiscount() {
         return discount;
     }
@@ -37,15 +46,6 @@ public class Cart<T extends Product> {
         this.discount = discount;
     }
 
-    public void setShippingOption(ShippingOption shippingOption) {
-        this.shippingOption = shippingOption;
-        logger.info("Shipping option set to: " + shippingOption.getClass().getSimpleName());
-    }
-
-    public void setPayment(Payment payment) {
-        this.payment = payment;
-        logger.info("Payment method set to: " + payment.getClass().getSimpleName());
-    }
 
     public void addProduct(T product, int quantity) {
         try {
