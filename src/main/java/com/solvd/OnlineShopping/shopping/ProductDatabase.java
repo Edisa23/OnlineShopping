@@ -3,14 +3,21 @@ package com.solvd.OnlineShopping.shopping;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class ProductDatabase {
-    public enum Department {
-        DEPARTMENT1, DEPARTMENT2, DEPARTMENT3, DEPARTMENT4, DEPARTMENT5
+
+    private static final Logger logger = Logger.getLogger(ProductDatabase.class.getName());
+    private Map<Department, List<Product>> departmentProducts;
+
+    public List<Product> getProductsForDepartment(Department department) {
+        return departmentProducts.getOrDefault(department, List.of());
     }
 
-    private Map<Department, List<Product>> departmentProducts;
+    public Stream<Product> getProductsForDepartmentStream() {
+        return departmentProducts.values().stream().flatMap(List::stream);
+    }
 
     public ProductDatabase() {
         this.departmentProducts = new EnumMap<>(Department.class);
@@ -33,7 +40,7 @@ public class ProductDatabase {
                     Product product = new Product(productId, productName, price, department);
                     addProduct(product);
                 } else {
-                    System.err.println("Invalid line in product file: " + line);
+                    logger.warning("Invalid line in product file: " + line);
                 }
             }
         }
@@ -45,12 +52,4 @@ public class ProductDatabase {
         departmentProducts.get(department).add(product);
     }
 
-    public List<Product> getProductsForDepartment(Department department) {
-        return departmentProducts.getOrDefault(department, List.of());
-    }
-
-
-    public Stream<Product> getProductsForDepartmentStream() {
-        return departmentProducts.values().stream().flatMap(List::stream);
-    }
 }

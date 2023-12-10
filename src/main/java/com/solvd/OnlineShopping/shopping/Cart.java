@@ -33,6 +33,7 @@ public class Cart<T extends Product> {
         this.payment = payment;
         logger.info("Payment method set to: " + payment.getClass().getSimpleName());
     }
+
     public Discount<T> getDiscount() {
         return discount;
     }
@@ -74,7 +75,29 @@ public class Cart<T extends Product> {
         for (CartItem<T> item : cartItems) {
             total += item.getProduct().getPrice() * item.getQuantity();
         }
+        if (shippingOption != null) {
+            total += shippingOption.calculateShippingCost(this);
+        }
+
         return total;
     }
 
+    public void processPayment() {
+
+        if (payment != null) {
+
+            boolean paymentSuccess = payment.processPayment(calculateTotal());
+
+            if (paymentSuccess) {
+                logger.info("Payment processed successfully.");
+
+            } else {
+                logger.warning("Payment processing failed. Please try again or choose a different payment method.");
+
+            }
+        } else {
+            logger.warning("No payment method set. Please set a payment method before processing the payment.");
+
+        }
+    }
 }

@@ -12,7 +12,9 @@ import com.solvd.OnlineShopping.shopping.*;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.InputMismatchException;
 import java.util.logging.Logger;
 
 
@@ -47,70 +49,97 @@ public class Main {
         }
 
         CustomerDatabase customerDatabase = new CustomerDatabase();
-        ShippingOption shippingOption = null;
-        ExpressShipping expressShipping = new ExpressShipping("Express Shipping", 12.99, "1-2 days");
-        StandardShipping standardShipping = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
+        ShippingOption shippingOption = new ShippingOption() {
 
-        Payment payment = new CreditCard();
+            @Override
+            public double calculateShippingFee() {
+                return 0;
+            }
+
+            @Override
+            public void displayOptionDetails() {
+
+            }
+
+            @Override
+            public double calculateShippingCost(Cart<?> cart) {
+                return 0;
+            }
+        };
+
         Scanner scanner = new Scanner(System.in);
 
         Account currentAccount = null;
 
         while (true) {
             displayMainMenu();
-            int authChoice = scanner.nextInt();
+            try {
+                int authChoice = scanner.nextInt();
 
-            switch (authChoice) {
-                case SIGN_UP:
-                    currentAccount = signUp(scanner, customerDatabase);
-                    break;
-                case SIGN_IN:
-                    currentAccount = signIn(scanner, customerDatabase);
-                    break;
-                case CONTINUE_AS_GUEST:
-                    currentAccount = new GuestCustomer(InfoFinal.DEFAULT_USERNAME, InfoFinal.DEFAULT_PASSWORD);
-                    logger.info("Continuing as a guest.");
-                    break;
-                case EXIT:
-                    logger.info("Exiting the program.");
-                    scanner.close();
-                    System.exit(0);
-                    break;
-                default:
-                    logger.warning("Invalid choice. Please enter a valid option.");
-                    break;
-            }
+                switch (authChoice) {
+                    case SIGN_UP:
+                        currentAccount = signUp(scanner, customerDatabase);
+                        break;
+                    case SIGN_IN:
+                        currentAccount = signIn(scanner, customerDatabase);
+                        break;
+                    case CONTINUE_AS_GUEST:
+                        currentAccount = new GuestCustomer(InfoFinal.DEFAULT_USERNAME, InfoFinal.DEFAULT_PASSWORD);
+                        logger.info(AccountType.GUEST.getWelcomeMessage());
+                        break;
+                    case EXIT:
+                        logger.info("Exiting the program.");
+                        scanner.close();
+                        System.exit(0);
+                        break;
+                    default:
+                        logger.warning("Invalid choice. Please enter a valid option.");
+                        break;
+                }
 
-            if (currentAccount != null) {
-                handleUserActions(scanner, shoppingCart, productDatabase, shippingOption, payment, cart);
+                if (currentAccount != null) {
+                    handleUserActions(scanner, shoppingCart, productDatabase, shippingOption, cart);
+                }
+            } catch (InputMismatchException e) {
+                logger.warning("Invalid input. Please enter a valid number.");
+                scanner.nextLine();
+            } catch (Exception e) {
+                logger.warning("An unexpected error occurred: " + e.getMessage());
+                break;
             }
         }
     }
 
 
     private static Account signUp(Scanner scanner, CustomerDatabase customerDatabase) {
+
+
         logger.info("Enter a username:");
         String username = scanner.next();
-
 
         if (customerDatabase.getAccount(username) != null) {
             logger.info("Username already exists. Please Sign In.");
             return null;
         }
+        try {
+            AccountType accountType = AccountType.NEW;
 
-        logger.info("Enter a password:");
-        String password = scanner.next();
+            logger.info("Enter a password:");
+            String password = scanner.next();
 
-        AccountType accountType = AccountType.NEW;
+            Account newAccount = new NewCustomer(username, password);
 
-        Account newAccount = customerDatabase.createAccount(username, password, accountType);
-
-
-        customerDatabase.addAccount(newAccount);
-
-        logger.info("Account created successfully. Welcome, " + username + "!");
-        return newAccount;
+            customerDatabase.addAccount(newAccount);
+            logger.info("Account created successfully. Welcome, " + username + "!");
+            logger.info(AccountType.NEW.getWelcomeMessage());
+            return newAccount;
+        } catch (IllegalArgumentException e) {
+            logger.warning("Invalid input: " + e.getMessage());
+            logger.info("Please enter valid credentials.");
+            return null;
+        }
     }
+
 
     private static Account signIn(Scanner scanner, CustomerDatabase customerDatabase) {
         logger.info("Enter username:");
@@ -127,7 +156,8 @@ public class Main {
 
 
         if (customerDatabase.authenticateUser(username, password) != null) {
-            logger.info("Authentication successful. Welcome back, " + username + "!");
+            logger.info("Authentication successful. " + username + "!");
+            logger.info(AccountType.REGISTERED.getWelcomeMessage());
             return existingAccount;
         } else {
             logger.warning("Authentication failed. Please check your credentials.");
@@ -145,13 +175,19 @@ public class Main {
         logger.info("Enter your choice: ");
     }
 
-    private static void handleUserActions(Scanner scanner, Cart<Product> shoppingCart, ProductDatabase productDatabase, ShippingOption shippingOption, Payment payment, Cart<Product> cart) {
+    private static void handleUserActions(Scanner scanner, Cart<Product> shoppingCart, ProductDatabase productDatabase, ShippingOption shippingOption, Cart<Product> cart) {
         int userChoice;
 
         do {
             displayUserMenu();
-            userChoice = scanner.nextInt();
-
+            try {
+                userChoice = scanner.nextInt();
+            } catch (InputMismatchException e) {
+                logger.warning("Invalid input. Please enter a valid number.");
+                scanner.nextLine();
+                userChoice = 0;
+                ;
+            }
             switch (userChoice) {
                 case VIEW_PRODUCTS:
                     displayProductCatalog(productDatabase);
@@ -177,10 +213,10 @@ public class Main {
                     displayPaymentMethods();
                     logger.info("Enter your choice: ");
                     int paymentMethodChoice = scanner.nextInt();
-                    setPaymentMethod(paymentMethodChoice, payment, shoppingCart);
+                    setPaymentMethod(paymentMethodChoice, shoppingCart);
                     break;
                 case CHECKOUT:
-                    processCheckout(shoppingCart, shippingOption, payment);
+                    processCheckout(shoppingCart, shippingOption);
                     break;
                 case EXIT_USER_MENU:
                     logger.info("Exiting the shopping system. Thank you!");
@@ -188,7 +224,7 @@ public class Main {
                 default:
                     logger.warning("Invalid choice. Please enter a valid option.");
             }
-        } while (userChoice != 6);
+        } while (userChoice != EXIT_USER_MENU);
     }
 
     private static void setShippingOption(int choice, Cart<Product> shoppingCart) {
@@ -198,16 +234,17 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    shippingOption = createShippingOption("com.solvd.OnlineShopping.shippment.StandardShipping", "Standard Shipping", 5.99, "3-5 days");
+                    shippingOption = new StandardShipping("Standard Shipping", 5.99, "3-5 days");
                     break;
                 case 2:
-                    shippingOption = createShippingOption("com.solvd.OnlineShopping.shippment.ExpressShipping", "Express Shipping", 12.99, "1-2 days");
+                    shippingOption = new ExpressShipping("Express Shipping", 12.99, "1-2 days");
                     break;
                 case 3:
                     break;
                 default:
                     logger.warning("Invalid choice. Please enter a valid option.");
-                    break;
+                    logger.info("Please choose a valid shipping option (1, 2, or 3).");
+                    return;
             }
 
             if (shippingOption != null) {
@@ -215,19 +252,25 @@ public class Main {
                 logger.info("Shipping option set successfully.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error setting shipping option: " + e.getMessage());
         }
     }
 
     private static ShippingOption createShippingOption(String className, String optionName, double baseFee, String deliveryTime) throws Exception {
-        Class<?> shippingClass = Class.forName(className);
-        Constructor<?> shippingConstructor = shippingClass.getConstructor(String.class, double.class, String.class);
-        Object shippingObject = shippingConstructor.newInstance(optionName, baseFee, deliveryTime);
+        try {
+            Class<?> shippingClass = Class.forName(className);
+            Constructor<?> shippingConstructor = shippingClass.getConstructor(String.class, double.class, String.class);
+            Object shippingObject = shippingConstructor.newInstance(optionName, baseFee, deliveryTime);
 
-        Method setDeliveryTimeMethod = shippingObject.getClass().getMethod("setDeliveryTime", String.class);
-        setDeliveryTimeMethod.invoke(shippingObject, "Fast Delivery");
+            Method setDeliveryTimeMethod = shippingObject.getClass().getMethod("setDeliveryTime", String.class);
+            setDeliveryTimeMethod.invoke(shippingObject, "Fast Delivery");
 
-        return (ShippingOption) shippingObject;
+            return (ShippingOption) shippingObject;
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+                 InvocationTargetException e) {
+            logger.warning("Error creating shipping option: " + e.getMessage());
+            return null;
+        }
     }
 
     private static void displayUserMenu() {
@@ -381,7 +424,7 @@ public class Main {
         logger.info("Enter your choice: ");
     }
 
-    private static void setPaymentMethod(int choice, Payment payment, Cart<Product> shoppingCart) {
+    private static void setPaymentMethod(int choice, Cart<Product> shoppingCart) {
         Scanner scanner = new Scanner(System.in);
         Payment selectedPayment = createPayment(choice, scanner);
 
@@ -440,7 +483,7 @@ public class Main {
         return payPal;
     }
 
-    private static void processCheckout(Cart<Product> shoppingCart, ShippingOption shippingOption, Payment payment) {
+    private static void processCheckout(Cart<Product> shoppingCart, ShippingOption shippingOption) {
         if (shoppingCart.getCartItems().isEmpty()) {
             logger.info("Your shopping cart is empty. Please add items before checking out.");
             return;
@@ -448,43 +491,9 @@ public class Main {
 
         displayShoppingCart(shoppingCart);
 
-        displayShoppingCart(shoppingCart);
-
-        logger.info("Selected Shipping Option:");
-        shippingOption.displayOptionDetails();
-
-        double subtotal = shoppingCart.calculateTotal();
-        double shippingFee = shippingOption.calculateShippingFee();
-        double total = subtotal + shippingFee;
-
-        logger.info("Subtotal: $" + subtotal);
-        logger.info("Shipping Fee: $" + shippingFee);
-        logger.info("Total: $" + total);
-
-        generateBill(shoppingCart, shippingOption, subtotal, shippingFee, total);
-
         logger.info("Transaction successful! Thank you for your purchase.");
         shoppingCart.getCartItems().clear();
         System.exit(0);
-    }
-
-    private static void generateBill(Cart<Product> shoppingCart, ShippingOption shippingOption, double subtotal, double shippingFee, double total) {
-
-
-        logger.info("=== BILL === ");
-
-
-        logger.info("Items in Cart:");
-        displayShoppingCart(shoppingCart);
-
-        logger.info("Selected Shipping Option:");
-        shippingOption.displayOptionDetails();
-        logger.info("Subtotal: $" + subtotal);
-        logger.info("Shipping Fee: $" + shippingFee);
-        logger.info("Total: $" + total);
-
-
-        logger.info("=======================");
     }
 
 }

@@ -16,17 +16,13 @@ public class PayPal implements Payment {
     private String email;
     private String passwordHash;
 
-
-    public PayPal(String email, String password) {
-        this.setEmail(email);
-        this.setPassword(password);
+    public String getPasswordHash() {
+        return passwordHash;
     }
-
 
     public void setPassword(String password) {
         this.passwordHash = hashPassword(password);
     }
-
 
     public String getEmail() {
         return email;
@@ -37,6 +33,11 @@ public class PayPal implements Payment {
             throw new IllegalArgumentException("Invalid email format");
         }
         this.email = email;
+    }
+
+    public PayPal(String email, String password) {
+        this.setEmail(email);
+        this.setPassword(password);
     }
 
     private String hashPassword(String password) {
@@ -51,9 +52,10 @@ public class PayPal implements Payment {
     }
 
     @Override
-    public void processPayment(double total) {
+    public boolean processPayment(double total) {
         logger.info("Processing payment through PayPal");
 
+        return false;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.solvd.OnlineShopping.shippment;
 
+import com.solvd.OnlineShopping.shopping.Cart;
+
 import java.util.logging.Logger;
 
 
@@ -27,6 +29,11 @@ public class ExpressShipping extends Shipping {
     public void displayOptionDetails() {
         super.displayOptionDetails();
         logger.info("Estimated Delivery Time: " + deliveryTime);
+    }
+
+    @Override
+    public double calculateShippingCost(Cart<?> cart) {
+        return baseFee;
     }
 
 

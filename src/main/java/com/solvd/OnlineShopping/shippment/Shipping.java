@@ -21,7 +21,6 @@ public abstract class Shipping implements ShippingOption {
         return baseFee;
     }
 
-
     @Override
     public void displayOptionDetails() {
         logger.info("Shipping Option: " + optionName);

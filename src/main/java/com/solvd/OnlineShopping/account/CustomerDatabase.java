@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CustomerDatabase {
-
+    private static final Logger logger = Logger.getLogger(CustomerDatabase.class.getName());
     private Map<String, Account> accounts;
 
     public CustomerDatabase() {
@@ -19,10 +19,20 @@ public class CustomerDatabase {
     }
 
     public void addAccount(Account account) {
-        accounts.put(account.getUsername(), account);
+
+        if (account != null) {
+            accounts.put(account.getUsername(), account);
+        } else {
+
+            logger.warning("Please enter a correct username or password");
+        }
     }
 
     public Account createAccount(String username, String password, AccountType accountType) {
+
+        if (!isValidUsername(username) || !isValidPassword(password)) {
+            return null;
+        }
         switch (accountType) {
             case GUEST:
                 return new GuestCustomer(username, password);
@@ -33,6 +43,20 @@ public class CustomerDatabase {
             default:
                 throw new IllegalArgumentException("Invalid account type");
         }
+    }
+
+    private boolean isValidUsername(String username) {
+
+        int usernameLength = username.length();
+        return usernameLength >= InfoFinal.MIN_USERNAME_LENGTH && usernameLength <= InfoFinal.MAX_USERNAME_LENGTH;
+
+
+    }
+
+    private boolean isValidPassword(String password) {
+
+        int passwordLength = password.length();
+        return passwordLength >= InfoFinal.MIN_PASSWORD_LENGTH && passwordLength <= InfoFinal.MAX_PASSWORD_LENGTH;
     }
 
     private void loadRegisteredCustomers() {

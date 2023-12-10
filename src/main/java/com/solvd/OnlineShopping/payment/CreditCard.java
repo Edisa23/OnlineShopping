@@ -1,7 +1,5 @@
 package com.solvd.OnlineShopping.payment;
 
-import com.solvd.OnlineShopping.exception.InvalidCVVException;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +12,7 @@ public class CreditCard implements Payment {
     private static final Logger logger = Logger.getLogger(CreditCard.class.getName());
     private String cardNumber;
     private String cardHolderName;
-    private String cardCvvHash;
+    private String cardCvv;
 
 
     public CreditCard() {
@@ -25,31 +23,8 @@ public class CreditCard implements Payment {
         throw new UnsupportedOperationException("CVV retrieval not allowed.");
     }
 
-    public void setCardCvv(int cardCvv) {
-        this.cardCvvHash = hashCVV(cardCvv);
-    }
-
-    private String hashCVV(int cardCvv) {
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(String.valueOf(cardCvv).getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hashBytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing CVV", e);
-        }
-    }
-
-
     public String getCardNumber() {
         return cardNumber;
-    }
-
-    public void setCardNumber(String cardNumber) {
-        if (!validateCreditCardNumber(cardNumber)) {
-            throw new IllegalArgumentException("Invalid credit card number");
-        }
-        this.cardNumber = cardNumber;
     }
 
     public String getCardHolderName() {
@@ -60,20 +35,43 @@ public class CreditCard implements Payment {
         this.cardHolderName = cardHolderName;
     }
 
+    public void setCardCvv(int cardCvv) {
+        this.cardCvv = hashCardCvv(cardCvv);
+    }
+
+    public void setCardNumber(String cardNumber) {
+        if (!validateCreditCardNumber(cardNumber)) {
+            throw new IllegalArgumentException("Invalid credit card number");
+        }
+        this.cardNumber = cardNumber;
+    }
+
+    private String hashCardCvv(int cardCvv) {
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(String.valueOf(cardCvv).getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error hashing CVV", e);
+        }
+    }
+
     private boolean validateCreditCardNumber(String cardNumber) {
 
         return cardNumber.matches("\\d{16}");
     }
 
     @Override
-    public void processPayment(double total) {
+    public boolean processPayment(double total) {
 
+        return false;
     }
 
     public CreditCard(String cardNumber, String cardHolderName, int cardCvv) {
         this.cardNumber = cardNumber;
         this.cardHolderName = cardHolderName;
-        this.setCardCvv(cardCvv);
+        setCardCvv(cardCvv);
     }
 
     @Override
@@ -81,13 +79,50 @@ public class CreditCard implements Payment {
         try (Scanner scanner = new Scanner(System.in)) {
             logger.info("Processing credit card payment");
             logger.info("Enter CVV:");
-            int cvv = scanner.nextInt();
 
-            setCardCvv(cvv);
-            logger.info("Payment successful! Thank you for your purchase.");
-            return true;
+            int enteredCvv = getValidatedCvv(scanner);
+            String enteredCvvHash = hashCardCvv(enteredCvv);
 
+            boolean paymentResult = compareHashedCvv(enteredCvvHash);
+
+            if (paymentResult) {
+                logger.info("Payment successful! Thank you for your purchase.");
+            } else {
+                logger.warning("Payment failed. Please try again.");
+            }
+
+            return paymentResult;
         }
+    }
+
+    private int getValidatedCvv(Scanner scanner) {
+        int cvv = 0;
+        while (true) {
+            try {
+                logger.info("Enter CVV:");
+                cvv = scanner.nextInt();
+
+
+                if (isValidCvvLength(cvv)) {
+                    break;
+                } else {
+                    logger.warning("Invalid CVV length. Please enter a 3-digit CVV.");
+                }
+            } catch (java.util.InputMismatchException e) {
+                logger.warning("Invalid CVV format. Please enter a numeric value.");
+                scanner.nextLine();
+            }
+        }
+        return cvv;
+    }
+
+    private boolean isValidCvvLength(int cvv) {
+        return String.valueOf(cvv).length() == 3;
+    }
+
+    private boolean compareHashedCvv(String enteredCvvHash) {
+
+        return enteredCvvHash.equals(cardCvv);
     }
 
     @Override
